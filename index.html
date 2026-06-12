@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#FFB300">
+<title>わりざんマスター</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<canvas id="fx-canvas"></canvas>
+
+<!-- ============ ホーム画面 ============ -->
+<section id="screen-home" class="screen active">
+  <h1 class="title">わりざんマスター</h1>
+  <div class="mascot" id="home-mascot">🦊</div>
+  <div class="level-box">
+    <div class="level-label">レベル <span id="home-level">1</span></div>
+    <div class="xp-bar"><div class="xp-fill" id="home-xp-fill"></div></div>
+    <div class="xp-text" id="home-xp-text">0 / 100 XP</div>
+  </div>
+  <div class="streak-box" id="home-streak">⭐ きょうも いっしょに がんばろう!</div>
+  <div class="diff-buttons">
+    <button class="btn diff-easy" id="btn-easy">🌱 かんたん</button>
+    <button class="btn diff-normal" id="btn-normal">🌻 ふつう</button>
+    <button class="btn diff-hard" id="btn-hard">🌋 むずかしい <small>(あまりつき)</small></button>
+  </div>
+  <div class="home-nav">
+    <button class="btn btn-sub" id="btn-badges">🏅 バッジ</button>
+    <button class="btn btn-sub" id="btn-ranking">👑 ランキング</button>
+    <button class="btn btn-sub" id="btn-sound">🔊</button>
+  </div>
+</section>
+
+<!-- ============ ゲーム画面 ============ -->
+<section id="screen-game" class="screen">
+  <header class="game-header">
+    <button class="btn-quit" id="btn-quit">✖</button>
+    <div class="progress-wrap">
+      <div class="progress-label">もんだい <span id="q-num">1</span> / 10</div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+    <div class="game-score">⭐ <span id="game-score">0</span></div>
+  </header>
+
+  <div class="game-info-row">
+    <div class="combo-display" id="combo-display">🔥 2 コンボ!</div>
+    <div class="timer" id="timer">⏱ 0.0</div>
+  </div>
+
+  <div class="question-card" id="question-card">
+    <div class="question-text" id="question-text">12 ÷ 3 =</div>
+    <div class="answer-row">
+      <div class="answer-box active" id="answer-quotient">?</div>
+      <div class="remainder-wrap hidden" id="remainder-wrap">
+        <span class="remainder-label">あまり</span>
+        <div class="answer-box" id="answer-remainder">?</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mascot mascot-game" id="game-mascot">🦊</div>
+
+  <div class="numpad" id="numpad">
+    <button class="num-btn" data-num="1">1</button>
+    <button class="num-btn" data-num="2">2</button>
+    <button class="num-btn" data-num="3">3</button>
+    <button class="num-btn" data-num="4">4</button>
+    <button class="num-btn" data-num="5">5</button>
+    <button class="num-btn" data-num="6">6</button>
+    <button class="num-btn" data-num="7">7</button>
+    <button class="num-btn" data-num="8">8</button>
+    <button class="num-btn" data-num="9">9</button>
+    <button class="num-btn num-clear" data-action="clear">けす</button>
+    <button class="num-btn" data-num="0">0</button>
+    <button class="num-btn num-enter" data-action="enter">OK!</button>
+  </div>
+
+  <div class="feedback-overlay" id="feedback-overlay">
+    <div class="feedback-text" id="feedback-text">せいかい!</div>
+    <div class="feedback-sub" id="feedback-sub">+150てん</div>
+  </div>
+</section>
+
+<!-- ============ リザルト画面 ============ -->
+<section id="screen-result" class="screen">
+  <h2 class="result-title" id="result-title">けっか はっぴょう!</h2>
+  <div class="stars" id="result-stars"><span>★</span><span>★</span><span>★</span></div>
+  <div class="result-card">
+    <div class="result-row">せいかい <span id="result-correct">0 / 10</span></div>
+    <div class="result-row">タイム <span id="result-time">0.0 びょう</span></div>
+    <div class="result-row">さいだいコンボ <span id="result-combo">0</span></div>
+    <div class="result-row result-score">スコア <span id="result-score">0</span></div>
+  </div>
+  <div class="result-xp">
+    <div class="xp-bar"><div class="xp-fill" id="result-xp-fill"></div></div>
+    <div class="xp-text" id="result-xp-text"></div>
+  </div>
+  <div class="new-badges" id="result-newbadges"></div>
+  <div class="rank-in hidden" id="result-rankin">
+    <div class="rank-in-msg">🎉 ランキングいり! なまえを いれてね</div>
+    <input id="rank-name" maxlength="8" placeholder="なまえ">
+    <button class="btn" id="btn-rank-save">とうろく する</button>
+  </div>
+  <div class="result-nav">
+    <button class="btn" id="btn-retry">🔁 もういちど</button>
+    <button class="btn btn-sub" id="btn-home">🏠 ホーム</button>
+  </div>
+</section>
+
+<!-- ============ バッジ画面 ============ -->
+<section id="screen-badges" class="screen">
+  <h2 class="page-title">🏅 バッジコレクション</h2>
+  <div class="badge-count" id="badge-count">0 / 13 こ ゲット!</div>
+  <div class="badge-grid" id="badge-grid"></div>
+  <button class="btn btn-sub btn-back" data-back>🏠 もどる</button>
+</section>
+
+<!-- ============ ランキング画面 ============ -->
+<section id="screen-ranking" class="screen">
+  <h2 class="page-title">👑 ランキング</h2>
+  <div class="rank-tabs">
+    <button class="rank-tab active" data-diff="easy">🌱 かんたん</button>
+    <button class="rank-tab" data-diff="normal">🌻 ふつう</button>
+    <button class="rank-tab" data-diff="hard">🌋 むずかしい</button>
+  </div>
+  <ol class="rank-list" id="rank-list"></ol>
+  <button class="btn btn-sub btn-back" data-back>🏠 もどる</button>
+</section>
+
+<!-- ============ レベルアップ演出 ============ -->
+<div class="levelup-overlay" id="levelup-overlay">
+  <div class="levelup-box">
+    <div class="levelup-label">⭐ レベルアップ! ⭐</div>
+    <div class="levelup-level" id="levelup-level">レベル 2 に なったよ!</div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="effects.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
