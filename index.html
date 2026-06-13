@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#FFB300">
 <title>わりざんマスター</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 
@@ -16,17 +16,26 @@
   <h1 class="title">わりざんマスター</h1>
   <div class="mascot" id="home-mascot">🦊</div>
   <div class="level-box">
-    <div class="level-label">レベル <span id="home-level">1</span></div>
+    <div class="level-label">レベル <span id="home-level">1</span> <span class="rank-title" id="home-rank">みならい</span></div>
     <div class="xp-bar"><div class="xp-fill" id="home-xp-fill"></div></div>
     <div class="xp-text" id="home-xp-text">0 / 100 XP</div>
   </div>
   <div class="streak-box" id="home-streak">⭐ きょうも いっしょに がんばろう!</div>
+  <div class="daily-goal" id="home-daily">
+    <div class="daily-goal-top">
+      <span class="daily-goal-label">🎯 きょうの もくひょう</span>
+      <span class="daily-goal-count"><span id="daily-count">0</span> / <span id="daily-target">20</span> もん</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill daily-fill" id="daily-fill"></div></div>
+    <div class="daily-done hidden" id="daily-done">🎉 きょうの もくひょう たっせい!</div>
+  </div>
   <div class="diff-buttons">
     <button class="btn diff-easy" id="btn-easy">🌱 かんたん</button>
     <button class="btn diff-normal" id="btn-normal">🌻 ふつう</button>
     <button class="btn diff-hard" id="btn-hard">🌋 むずかしい <small>(あまりつき)</small></button>
   </div>
   <div class="home-nav">
+    <button class="btn btn-sub" id="btn-stats">📊 きろく</button>
     <button class="btn btn-sub" id="btn-badges">🏅 バッジ</button>
     <button class="btn btn-sub" id="btn-ranking">👑 ランキング</button>
     <button class="btn btn-sub" id="btn-sound">🔊</button>
@@ -115,6 +124,44 @@
   <button class="btn btn-sub btn-back" data-back>🏠 もどる</button>
 </section>
 
+<!-- ============ きろく(統計)画面 ============ -->
+<section id="screen-stats" class="screen">
+  <h2 class="page-title">📊 きみの きろく</h2>
+  <div class="stat-hero">
+    <div class="stat-hero-num" id="stat-total">0</div>
+    <div class="stat-hero-label">もん せいかい したよ!</div>
+  </div>
+  <div class="stat-milestone" id="stat-milestone"></div>
+  <div class="progress-bar stat-milestone-bar"><div class="progress-fill" id="stat-milestone-fill"></div></div>
+  <div class="stat-bars">
+    <div class="stat-bar-row">
+      <span class="stat-bar-label">🌱 かんたん</span>
+      <div class="stat-bar"><div class="stat-bar-fill easy" id="stat-bar-easy"></div></div>
+      <span class="stat-bar-num" id="stat-num-easy">0</span>
+    </div>
+    <div class="stat-bar-row">
+      <span class="stat-bar-label">🌻 ふつう</span>
+      <div class="stat-bar"><div class="stat-bar-fill normal" id="stat-bar-normal"></div></div>
+      <span class="stat-bar-num" id="stat-num-normal">0</span>
+    </div>
+    <div class="stat-bar-row">
+      <span class="stat-bar-label">🌋 むずかしい</span>
+      <div class="stat-bar"><div class="stat-bar-fill hard" id="stat-bar-hard"></div></div>
+      <span class="stat-bar-num" id="stat-num-hard">0</span>
+    </div>
+  </div>
+  <div class="stat-tiles">
+    <div class="stat-tile"><div class="stat-tile-num" id="stat-accuracy">0%</div><div class="stat-tile-label">せいかいりつ</div></div>
+    <div class="stat-tile"><div class="stat-tile-num" id="stat-perfect">0</div><div class="stat-tile-label">パーフェクト</div></div>
+    <div class="stat-tile"><div class="stat-tile-num" id="stat-combo">🔥0</div><div class="stat-tile-label">さいだいコンボ</div></div>
+    <div class="stat-tile"><div class="stat-tile-num" id="stat-sessions">0</div><div class="stat-tile-label">あそんだかいすう</div></div>
+    <div class="stat-tile"><div class="stat-tile-num" id="stat-streak">0</div><div class="stat-tile-label">れんぞく日すう</div></div>
+    <div class="stat-tile"><div class="stat-tile-num" id="stat-badges">0/101</div><div class="stat-tile-label">バッジ</div></div>
+  </div>
+  <div class="next-badge" id="stat-nextbadge"></div>
+  <button class="btn btn-sub btn-back" data-back>🏠 もどる</button>
+</section>
+
 <!-- ============ ランキング画面 ============ -->
 <section id="screen-ranking" class="screen">
   <h2 class="page-title">👑 ランキング</h2>
@@ -135,8 +182,10 @@
   </div>
 </div>
 
-<script src="data.js"></script>
-<script src="effects.js"></script>
-<script src="app.js"></script>
+<!-- ?v= はキャッシュ対策。アプリを更新したら数字を増やすと、ブラウザが必ず新しい版を読み込みます -->
+<script src="data.js?v=2"></script>
+<script src="badges.js?v=2"></script>
+<script src="effects.js?v=2"></script>
+<script src="app.js?v=2"></script>
 </body>
 </html>

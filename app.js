@@ -3,7 +3,10 @@
   'use strict';
 
   var QUESTIONS = 10;
+  var DAILY_GOAL = 20; // きょうの もくひょう(1日にせいかいする もんすう)
   var PLAYER_NAME = 'ゆま'; // ランキング登録の名前(ひとりで使うので固定。変えたいときはここを書き換える)
+  // 累計せいかい数の「つぎの きろく」マイルストーン(きろく画面の進捗バー用)
+  var MILESTONES = [10, 25, 50, 100, 250, 500, 1000, 2000, 3500, 5000, 7500, 10000];
   var $ = function (id) { return document.getElementById(id); };
 
   var state = Storage.load();
@@ -23,6 +26,15 @@
   }
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
   function xpToNext(level) { return 100 + (level - 1) * 50; }
+  function rankTitle(level) { // レベルに応じた称号(ホームに表示)
+    if (level >= 30) return 'でんせつ';
+    if (level >= 20) return 'グランドマスター';
+    if (level >= 12) return 'マスター';
+    if (level >= 8) return 'たつじん';
+    if (level >= 5) return 'けいさんし';
+    if (level >= 3) return 'かけだし';
+    return 'みならい';
+  }
   function replay(el, cls) { // CSSアニメを付け直して再生
     el.classList.remove(cls);
     void el.offsetWidth;
@@ -38,12 +50,20 @@
   /* ---------- ホーム ---------- */
   function renderHome() {
     $('home-level').textContent = state.level;
+    $('home-rank').textContent = rankTitle(state.level);
     var need = xpToNext(state.level);
     $('home-xp-fill').style.width = Math.min(100, state.xp / need * 100) + '%';
     $('home-xp-text').textContent = state.xp + ' / ' + need + ' XP';
     $('home-streak').textContent = state.streakDays > 0
       ? '🔥 ' + state.streakDays + 'にち れんぞくで がんばってるよ!'
       : '⭐ きょうも いっしょに がんばろう!';
+    // きょうの もくひょう(デイリーゴール)
+    var today = dateStr(new Date());
+    var todayCount = state.todayDate === today ? state.todayCount : 0;
+    $('daily-target').textContent = DAILY_GOAL;
+    $('daily-count').textContent = Math.min(todayCount, DAILY_GOAL);
+    $('daily-fill').style.width = Math.min(100, todayCount / DAILY_GOAL * 100) + '%';
+    $('daily-done').classList.toggle('hidden', todayCount < DAILY_GOAL);
     $('btn-sound').textContent = Effects.enabled ? '🔊' : '🔇';
   }
   function goHome() {
@@ -236,9 +256,17 @@
     state.sessions++;
     state.totalCorrect += s.correct;
     state.totalAnswered += QUESTIONS;
-    if (s.diff === 'hard') state.hardCorrect += s.correct;
+    state.totalScore += s.score;
+    if (session.perfect) state.perfectCount++;
+    if (s.diff === 'easy') { state.easyCorrect += s.correct; state.easyGames++; }
+    else if (s.diff === 'normal') { state.normalCorrect += s.correct; state.normalGames++; }
+    else if (s.diff === 'hard') { state.hardCorrect += s.correct; state.hardGames++; }
     if (s.maxCombo > state.maxCombo) state.maxCombo = s.maxCombo;
     if (s.score > state.bestScore[s.diff]) state.bestScore[s.diff] = s.score;
+
+    // きょうの もくひょう(デイリーゴール)の更新
+    if (state.todayDate !== today) { state.todayDate = today; state.todayCount = 0; }
+    state.todayCount += s.correct;
 
     // XP とレベル(複数レベル一括対応)
     var gainedXp = Math.round(s.score / 10);
@@ -294,11 +322,18 @@
 
     var nb = $('result-newbadges');
     nb.innerHTML = '';
-    for (var j = 0; j < newBadges.length; j++) {
+    var chipMax = Math.min(newBadges.length, 6); // 一度に大量取得しても表示は最大6個
+    for (var j = 0; j < chipMax; j++) {
       var chip = document.createElement('div');
       chip.className = 'badge-chip';
       chip.textContent = newBadges[j].emoji + ' ' + newBadges[j].name + ' ゲット!';
       nb.appendChild(chip);
+    }
+    if (newBadges.length > chipMax) {
+      var moreChip = document.createElement('div');
+      moreChip.className = 'badge-chip';
+      moreChip.textContent = '🏅 ほか ' + (newBadges.length - chipMax) + ' こ ゲット!';
+      nb.appendChild(moreChip);
     }
 
     $('result-rankin').classList.toggle('hidden', !rankIn);
@@ -369,6 +404,73 @@
     showScreen('badges');
   }
 
+  /* ---------- きろく(統計の可視化) ---------- */
+  function showStats() {
+    var tc = state.totalCorrect;
+    $('stat-total').textContent = tc;
+
+    // つぎの きろくまで(マイルストーン進捗バー)
+    var prev = 0, next = 0;
+    for (var i = 0; i < MILESTONES.length; i++) {
+      if (MILESTONES[i] > tc) { next = MILESTONES[i]; break; }
+      prev = MILESTONES[i];
+    }
+    if (next === 0) {
+      $('stat-milestone').textContent = '🏆 ぜんぶの きろく たっせい! でんせつだ!';
+      $('stat-milestone-fill').style.width = '100%';
+    } else {
+      $('stat-milestone').textContent = 'つぎの きろくまで あと ' + (next - tc) + ' もん!';
+      $('stat-milestone-fill').style.width = ((tc - prev) / (next - prev) * 100) + '%';
+    }
+
+    // 難易度べつ せいかい数(よこ棒グラフ。いちばん多いものを満タンにそろえる)
+    var e = state.easyCorrect, n = state.normalCorrect, h = state.hardCorrect;
+    var mx = Math.max(e, n, h, 1);
+    $('stat-num-easy').textContent = e;
+    $('stat-num-normal').textContent = n;
+    $('stat-num-hard').textContent = h;
+    $('stat-bar-easy').style.width = (e / mx * 100) + '%';
+    $('stat-bar-normal').style.width = (n / mx * 100) + '%';
+    $('stat-bar-hard').style.width = (h / mx * 100) + '%';
+
+    // タイル(せいかいりつ・パーフェクト数 など)
+    var acc = state.totalAnswered > 0 ? Math.round(state.totalCorrect / state.totalAnswered * 100) : 0;
+    $('stat-accuracy').textContent = acc + '%';
+    $('stat-perfect').textContent = state.perfectCount;
+    $('stat-combo').textContent = '🔥' + state.maxCombo;
+    $('stat-sessions').textContent = state.sessions;
+    $('stat-streak').textContent = state.streakDays;
+    var badgeGot = 0;
+    for (var k = 0; k < QuizData.BADGES.length; k++) {
+      if (state.badges[QuizData.BADGES[k].id]) badgeGot++;
+    }
+    $('stat-badges').textContent = badgeGot + '/' + QuizData.BADGES.length;
+
+    // つぎに ねらう バッジ(まだ取っていない さいしょの4つ)
+    var box = $('stat-nextbadge');
+    box.innerHTML = '';
+    var locked = [];
+    for (var m = 0; m < QuizData.BADGES.length && locked.length < 4; m++) {
+      if (!state.badges[QuizData.BADGES[m].id]) locked.push(QuizData.BADGES[m]);
+    }
+    var title = document.createElement('div');
+    title.className = 'next-badge-title';
+    if (locked.length === 0) {
+      title.textContent = '🎉 バッジ ぜんぶ あつめた! すごい!';
+      box.appendChild(title);
+    } else {
+      title.textContent = '🎯 つぎは これを ねらおう!';
+      box.appendChild(title);
+      for (var p = 0; p < locked.length; p++) {
+        var row = document.createElement('div');
+        row.className = 'next-badge-row';
+        row.textContent = locked[p].emoji + ' ' + locked[p].name + ' — ' + locked[p].desc;
+        box.appendChild(row);
+      }
+    }
+    showScreen('stats');
+  }
+
   /* ---------- ランキング ---------- */
   var currentRankTab = 'easy';
   function showRanking(diff) {
@@ -419,6 +521,7 @@
     $('btn-hard').addEventListener('click', function () { Effects.sound('tap'); startGame('hard'); });
     $('btn-badges').addEventListener('click', function () { Effects.sound('tap'); showBadges(); });
     $('btn-ranking').addEventListener('click', function () { Effects.sound('tap'); showRanking('easy'); });
+    $('btn-stats').addEventListener('click', function () { Effects.sound('tap'); showStats(); });
     $('btn-quit').addEventListener('click', quitGame);
     $('btn-retry').addEventListener('click', function () {
       Effects.sound('tap');

@@ -1052,4 +1052,201 @@ body {
   .rank-tabs {
     max-width: 600px;
   }
+
+  .stat-hero,
+  .stat-bars,
+  .stat-tiles,
+  .stat-milestone-bar,
+  .next-badge,
+  .daily-goal {
+    max-width: 480px;
+  }
+}
+
+/* ===== レベル称号 ===== */
+.rank-title {
+  display: inline-block;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  padding: 2px 12px;
+  border-radius: 999px;
+  margin-left: 6px;
+  vertical-align: middle;
+  box-shadow: 0 2px 6px rgba(255, 165, 0, 0.4);
+}
+
+/* ===== デイリーゴール ===== */
+.daily-goal {
+  width: 100%;
+  max-width: 360px;
+  background: linear-gradient(135deg, #FFF9E6, #FFFACD);
+  border-radius: 18px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+.daily-goal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.daily-goal-label {
+  font-weight: 900;
+  color: #FF6B9D;
+  font-size: 1.05rem;
+}
+.daily-goal-count {
+  font-weight: 900;
+  color: #2c2c2c;
+}
+.daily-fill {
+  background: linear-gradient(90deg, #FF9800, #FFD700) !important;
+}
+.daily-done {
+  margin-top: 8px;
+  text-align: center;
+  font-weight: 900;
+  color: #4CAF50;
+  animation: pulse-glow 1.2s ease-in-out infinite;
+}
+
+/* ===== きろく(統計)画面 ===== */
+.stat-hero {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #fff;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 24px;
+  padding: 22px;
+  text-align: center;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(255, 165, 0, 0.4);
+}
+.stat-hero-num {
+  font-size: 3.4rem;
+  font-weight: 900;
+  line-height: 1.1;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+.stat-hero-label {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.stat-milestone {
+  font-weight: 900;
+  color: #FF6B9D;
+  margin-bottom: 6px;
+  text-align: center;
+}
+.stat-milestone-bar {
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: 20px;
+}
+.stat-bars {
+  width: 100%;
+  max-width: 420px;
+  background: linear-gradient(135deg, #FFF9E6, #FFFACD);
+  border-radius: 20px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+.stat-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.stat-bar-row:last-child {
+  margin-bottom: 0;
+}
+.stat-bar-label {
+  width: 96px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+.stat-bar {
+  flex: 1;
+  height: 22px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.8s ease-out;
+  min-width: 6px;
+}
+.stat-bar-fill.easy {
+  background: linear-gradient(90deg, #90EE90, #7CCD7C);
+}
+.stat-bar-fill.normal {
+  background: linear-gradient(90deg, #FFB84D, #FF9800);
+}
+.stat-bar-fill.hard {
+  background: linear-gradient(90deg, #DA70D6, #C63FC6);
+}
+.stat-bar-num {
+  width: 56px;
+  text-align: right;
+  font-weight: 900;
+  color: #2c2c2c;
+  flex-shrink: 0;
+}
+.stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: 16px;
+}
+.stat-tile {
+  background: #fff;
+  border-radius: 16px;
+  padding: 12px 6px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.stat-tile-num {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #FF6B9D;
+}
+.stat-tile-label {
+  font-size: 0.78rem;
+  color: #666;
+  margin-top: 2px;
+}
+.next-badge {
+  width: 100%;
+  max-width: 420px;
+  background: linear-gradient(135deg, #FFF9E6, #FFFACD);
+  border-radius: 20px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+.next-badge-title {
+  font-weight: 900;
+  color: #FF6B9D;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.next-badge-row {
+  font-size: 0.9rem;
+  color: #2c2c2c;
+  padding: 7px 9px;
+  border-radius: 10px;
+  background: rgba(255, 215, 0, 0.14);
+  margin-bottom: 6px;
+}
+.next-badge-row:last-child {
+  margin-bottom: 0;
 }
