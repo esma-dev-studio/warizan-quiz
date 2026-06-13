@@ -3,6 +3,7 @@
   'use strict';
 
   var QUESTIONS = 10;
+  var PLAYER_NAME = 'ゆま'; // ランキング登録の名前(ひとりで使うので固定。変えたいときはここを書き換える)
   var $ = function (id) { return document.getElementById(id); };
 
   var state = Storage.load();
@@ -259,15 +260,24 @@
       }
     }
 
-    // ランクイン判定(トップ10)
+    // ランクイン判定&自動登録(トップ10、名前は PLAYER_NAME 固定で都度入力なし)
     var list = state.rankings[s.diff];
     var rankIn = s.score > 0 && (list.length < 10 || s.score > list[list.length - 1].score);
+    var rankPos = 0;
+    if (rankIn) {
+      var entry = { name: PLAYER_NAME, score: s.score, time: Math.round(s.totalTime * 10) / 10, date: today };
+      list.push(entry);
+      list.sort(function (a, b) { return b.score - a.score || a.time - b.time; });
+      state.rankings[s.diff] = list.slice(0, 10);
+      rankPos = state.rankings[s.diff].indexOf(entry) + 1;
+    }
+    state.lastName = PLAYER_NAME;
 
     Storage.save(state);
-    renderResult(session, gainedXp, levelsGained, newBadges, rankIn);
+    renderResult(session, gainedXp, levelsGained, newBadges, rankIn, rankPos);
   }
 
-  function renderResult(session, gainedXp, levelsGained, newBadges, rankIn) {
+  function renderResult(session, gainedXp, levelsGained, newBadges, rankIn, rankPos) {
     var stars = session.perfect ? 3 : session.correctCount >= 8 ? 2 : session.correctCount >= 6 ? 1 : 0;
     var titles = ['チャレンジ ありがとう! 💪', 'よく がんばったね! 😊', 'すごい! 🎉', 'パーフェクト!! 🎊'];
     $('result-title').textContent = titles[stars];
@@ -292,14 +302,14 @@
     }
 
     $('result-rankin').classList.toggle('hidden', !rankIn);
-    if (rankIn) $('rank-name').value = state.lastName || '';
+    if (rankIn) $('rank-in-msg').textContent = '🎉 ' + rankPos + 'い に ランクイン!';
 
     pendingResult = { session: session, levelsGained: levelsGained, stars: stars };
     showScreen('result');
-    playResultEffects(stars, session.perfect, levelsGained, newBadges.length);
+    playResultEffects(stars, session.perfect, levelsGained, newBadges.length, rankIn);
   }
 
-  function playResultEffects(stars, perfect, levelsGained, badgeCount) {
+  function playResultEffects(stars, perfect, levelsGained, badgeCount, rankIn) {
     Effects.sound('fanfare');
     var starSpans = $('result-stars').querySelectorAll('span');
     for (var i = 0; i < stars; i++) {
@@ -316,7 +326,7 @@
     setTimeout(function () {
       $('result-xp-fill').style.width = Math.min(100, state.xp / xpToNext(state.level) * 100) + '%';
     }, 600);
-    if (badgeCount > 0) {
+    if (badgeCount > 0 || rankIn) {
       setTimeout(function () { Effects.sound('badge'); }, 1300);
     }
     if (levelsGained > 0) {
@@ -328,21 +338,6 @@
         setTimeout(function () { $('levelup-overlay').classList.remove('show'); }, 3200);
       }, 1700);
     }
-  }
-
-  function saveRank() {
-    if (!pendingResult) return;
-    var s = pendingResult.session;
-    var name = $('rank-name').value.trim() || 'ヒーロー';
-    state.lastName = name;
-    var list = state.rankings[s.difficulty];
-    list.push({ name: name, score: s.score, time: Math.round(s.totalTime * 10) / 10, date: dateStr(new Date()) });
-    list.sort(function (a, b) { return b.score - a.score || a.time - b.time; });
-    state.rankings[s.difficulty] = list.slice(0, 10);
-    Storage.save(state);
-    $('result-rankin').classList.add('hidden');
-    Effects.sound('badge');
-    showRanking(s.difficulty);
   }
 
   /* ---------- バッジ一覧 ---------- */
@@ -430,7 +425,6 @@
       if (pendingResult) startGame(pendingResult.session.difficulty);
     });
     $('btn-home').addEventListener('click', function () { Effects.sound('tap'); goHome(); });
-    $('btn-rank-save').addEventListener('click', saveRank);
     $('btn-sound').addEventListener('click', function () {
       Effects.enabled = !Effects.enabled;
       state.soundOn = Effects.enabled;
