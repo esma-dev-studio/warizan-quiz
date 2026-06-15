@@ -582,6 +582,32 @@
     });
   }
 
+  // ひっ算モジュール(hissan.js)が 進行データを 共有・更新するための まど口
+  window.WarizanApp = {
+    state: state,
+    xpToNext: xpToNext,
+    goHome: goHome,
+    save: function () { Storage.save(state); },
+    grantXp: function (xp) { // ひっ算クリアの ごほうび。レベルアップ数を返す
+      state.xp += xp;
+      var gained = 0;
+      while (state.xp >= xpToNext(state.level)) {
+        state.xp -= xpToNext(state.level);
+        state.level++;
+        gained++;
+      }
+      Storage.save(state);
+      return { levelsGained: gained, level: state.level };
+    },
+    showLevelUp: function () { // 共有の レベルアップ演出
+      $('levelup-level').textContent = 'レベル ' + state.level + ' に なったよ!';
+      $('levelup-overlay').classList.add('show');
+      Effects.sound('levelup');
+      Effects.confetti(3);
+      setTimeout(function () { $('levelup-overlay').classList.remove('show'); }, 3200);
+    }
+  };
+
   /* ---------- 起動 ---------- */
   bind();
   goHome();

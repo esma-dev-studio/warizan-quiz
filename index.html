@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#FFB300">
 <title>わりざんマスター</title>
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 
@@ -34,6 +34,7 @@
     <button class="btn diff-normal" id="btn-normal">🌻 ふつう</button>
     <button class="btn diff-hard" id="btn-hard">🌋 むずかしい <small>(あまりつき)</small></button>
   </div>
+  <button class="btn btn-hissan" id="btn-hissan">✏️ わり算の ひっ算に ちょうせん</button>
   <div class="home-nav">
     <button class="btn btn-sub" id="btn-stats">📊 きろく</button>
     <button class="btn btn-sub" id="btn-badges">🏅 バッジ</button>
@@ -174,6 +175,78 @@
   <button class="btn btn-sub btn-back" data-back>🏠 もどる</button>
 </section>
 
+<!-- ============ ひっ算メニュー ============ -->
+<section id="screen-hissan-menu" class="screen">
+  <h2 class="page-title">✏️ わり算の ひっ算</h2>
+  <div class="mascot">🦊</div>
+  <p class="hissan-lead">「たてる → かける → ひく → おろす」を くりかえして といていくよ!</p>
+  <button class="btn btn-hissan" id="hissan-howto-btn">📖 まず やり方を みる</button>
+  <div class="diff-buttons">
+    <button class="btn diff-easy" data-hlevel="d2">🌱 2けた ÷ 1けた</button>
+    <button class="btn diff-normal" data-hlevel="d3">🌻 3けた ÷ 1けた</button>
+    <button class="btn diff-hard" data-hlevel="rem">🌋 あまりの ある ひっ算</button>
+  </div>
+  <button class="btn btn-sub btn-back" data-back>🏠 もどる</button>
+</section>
+
+<!-- ============ ひっ算 やり方解説 ============ -->
+<section id="screen-hissan-howto" class="screen">
+  <h2 class="page-title">📖 ひっ算の やり方</h2>
+  <div class="hissan-stage"><div class="hissan-grid" id="howto-grid"></div></div>
+  <div class="hissan-coach">
+    <span class="hissan-coach-face">🦊</span>
+    <span class="hissan-coach-text" id="howto-text"></span>
+  </div>
+  <div class="hissan-nav">
+    <button class="btn btn-sub" id="howto-back">🏠 もどる</button>
+    <button class="btn" id="howto-next">つぎへ ▶</button>
+  </div>
+</section>
+
+<!-- ============ ひっ算 れんしゅう ============ -->
+<section id="screen-hissan-play" class="screen">
+  <header class="hissan-header">
+    <button class="btn-quit" id="hissan-quit">✖</button>
+    <div class="hissan-step-badge" id="hissan-step-badge">① たてる</div>
+  </header>
+  <div class="hissan-stage"><div class="hissan-grid" id="play-grid"></div></div>
+  <div class="hissan-coach">
+    <span class="hissan-coach-face" id="play-face">🦊</span>
+    <span class="hissan-coach-text" id="play-text"></span>
+  </div>
+  <div class="hissan-answer" id="play-answer">?</div>
+  <div class="numpad hissan-numpad" id="hissan-numpad">
+    <button class="num-btn" data-num="1">1</button>
+    <button class="num-btn" data-num="2">2</button>
+    <button class="num-btn" data-num="3">3</button>
+    <button class="num-btn" data-num="4">4</button>
+    <button class="num-btn" data-num="5">5</button>
+    <button class="num-btn" data-num="6">6</button>
+    <button class="num-btn" data-num="7">7</button>
+    <button class="num-btn" data-num="8">8</button>
+    <button class="num-btn" data-num="9">9</button>
+    <button class="num-btn num-clear" data-action="clear">けす</button>
+    <button class="num-btn" data-num="0">0</button>
+    <button class="num-btn num-enter" data-action="enter">OK!</button>
+  </div>
+  <button class="btn btn-orosu hidden" id="hissan-orosu-btn">⬇ おろす!</button>
+</section>
+
+<!-- ============ ひっ算 けっか ============ -->
+<section id="screen-hissan-result" class="screen">
+  <div class="mascot" id="hissan-result-face">🦊</div>
+  <h2 class="result-title" id="hissan-result-title">よく できました!</h2>
+  <div class="hissan-stage"><div class="hissan-grid" id="result-grid"></div></div>
+  <div class="result-card">
+    <div class="result-row result-score">こたえ <span id="hissan-result-answer">0</span></div>
+  </div>
+  <div class="result-xp"><div class="xp-text" id="hissan-result-xp"></div></div>
+  <div class="result-nav">
+    <button class="btn" id="hissan-next-btn">➡️ つぎの もんだい</button>
+    <button class="btn btn-sub" id="hissan-menu-btn">📋 メニュー</button>
+  </div>
+</section>
+
 <!-- ============ レベルアップ演出 ============ -->
 <div class="levelup-overlay" id="levelup-overlay">
   <div class="levelup-box">
@@ -183,9 +256,10 @@
 </div>
 
 <!-- ?v= はキャッシュ対策。アプリを更新したら数字を増やすと、ブラウザが必ず新しい版を読み込みます -->
-<script src="data.js?v=2"></script>
-<script src="badges.js?v=2"></script>
-<script src="effects.js?v=2"></script>
-<script src="app.js?v=2"></script>
+<script src="data.js?v=3"></script>
+<script src="badges.js?v=3"></script>
+<script src="effects.js?v=3"></script>
+<script src="app.js?v=3"></script>
+<script src="hissan.js?v=3"></script>
 </body>
 </html>

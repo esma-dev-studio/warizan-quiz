@@ -1250,3 +1250,188 @@ body {
 .next-badge-row:last-child {
   margin-bottom: 0;
 }
+
+/* ===== ひっ算モード ===== */
+.btn-hissan {
+  width: 100%;
+  max-width: 360px;
+  background: linear-gradient(135deg, #5C6BC0, #3949AB);
+  color: #fff;
+  font-weight: 900;
+  margin: 4px 0 18px;
+}
+.btn-hissan:active {
+  background: linear-gradient(135deg, #3949AB, #283593);
+}
+.hissan-lead {
+  max-width: 420px;
+  text-align: center;
+  color: #444;
+  font-weight: 700;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+/* 筆算ステージ */
+.hissan-stage {
+  background: #fff;
+  border-radius: 20px;
+  padding: 18px 22px;
+  margin-bottom: 16px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+  max-width: 92vw;
+}
+.hissan-grid {
+  --hcell: 40px;
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  column-gap: 2px;
+  row-gap: 2px;
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 1.9rem;
+  font-weight: 900;
+  color: #2c2c2c;
+  margin: 0 auto;
+}
+.hcell {
+  width: var(--hcell);
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hcell.divisor {
+  justify-content: flex-end;
+  padding-right: 6px;
+  color: #3949AB;
+}
+.hcell.dividend.bracket-top {
+  border-top: 3px solid #333;
+}
+.hcell.dividend.bracket-left {
+  border-left: 3px solid #333;
+}
+.hcell.quot {
+  color: #FF6B9D;
+}
+.hcell.prod {
+  color: #3949AB;
+}
+.hcell.rem {
+  color: #E53935;
+}
+.hcell.brought {
+  color: #43A047;
+}
+.hissan-line {
+  height: 46px;
+  border-bottom: 3px solid #333;
+}
+.hcell.hidden,
+.hissan-line.hidden {
+  opacity: 0;
+}
+.hcell.pop-show {
+  animation: pop-in 0.35s ease;
+}
+.hcell.drop-in {
+  animation: drop-down 0.5s ease;
+}
+@keyframes drop-down {
+  0% { transform: translateY(-42px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* コーチの ふきだし */
+.hissan-coach {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+  background: linear-gradient(135deg, #FFF9E6, #FFFACD);
+  border-radius: 18px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-height: 64px;
+}
+.hissan-coach-face {
+  font-size: 2.2rem;
+  flex-shrink: 0;
+}
+.hissan-coach-text {
+  font-weight: 700;
+  color: #2c2c2c;
+  line-height: 1.45;
+}
+
+/* ステップ表示 */
+.hissan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: 12px;
+}
+.hissan-step-badge {
+  flex: 1;
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(135deg, #5C6BC0, #3949AB);
+  border-radius: 999px;
+  padding: 8px 16px;
+  margin-left: 8px;
+}
+.hissan-step-badge.step-tateru { background: linear-gradient(135deg, #66BB6A, #43A047); }
+.hissan-step-badge.step-kakeru { background: linear-gradient(135deg, #42A5F5, #1E88E5); }
+.hissan-step-badge.step-hiku { background: linear-gradient(135deg, #EF5350, #E53935); }
+.hissan-step-badge.step-orosu { background: linear-gradient(135deg, #FFB84D, #FB8C00); }
+
+/* こたえ入力 */
+.hissan-answer {
+  min-width: 90px;
+  min-height: 60px;
+  padding: 6px 20px;
+  font-size: 2.4rem;
+  font-weight: 900;
+  color: #2c2c2c;
+  background: #fff;
+  border: 4px solid #FFD700;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+}
+.hissan-answer.shake {
+  animation: shake 0.4s;
+}
+.hissan-numpad {
+  max-width: 320px;
+}
+.btn-orosu {
+  width: 100%;
+  max-width: 320px;
+  background: linear-gradient(135deg, #FFB84D, #FB8C00);
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 900;
+  animation: pulse-glow 1.2s ease-in-out infinite;
+}
+.hissan-nav {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  max-width: 420px;
+  justify-content: center;
+}
+.hissan-nav .btn {
+  flex: 1;
+}

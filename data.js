@@ -21,6 +21,7 @@
     totalScore: 0,
     todayDate: '',
     todayCount: 0,
+    hissanCleared: 0,
     badges: {},
     lastPlayDate: '',
     streakDays: 0,
