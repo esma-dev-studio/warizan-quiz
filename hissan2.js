@@ -380,9 +380,36 @@
     play2.idx = 0;
     play2.input = '';
     play2.solving = true;
+    play2.direct = true; // まずは「いきなり答えを書く」モード
+    play2.miss = 0;
     play2.map = renderGrid2($('play-grid'), play2.m);
     show('screen-hissan-play');
-    showStep2();
+    showDirect2();
+  }
+
+  function clearTargets2() {
+    var els = $('play-grid').querySelectorAll('.hcell.target');
+    for (var i = 0; i < els.length; i++) els[i].classList.remove('target');
+  }
+
+  // いきなり答えを書くモード: こたえの全マスを光らせる
+  function showDirect2() {
+    if (window.HandWrite) window.HandWrite.clearPads();
+    var el = $('hissan-step-badge');
+    el.textContent = 'こたえを かく';
+    el.className = 'hissan-step-badge ' + BADGE_CLS[play2.level.op];
+    $('play-text').textContent = '✏️ じぶんで けいさんして、こたえを かこう!';
+    $('play-face').textContent = '🦊';
+    clearTargets2();
+    for (var i = 0; i < play2.m.answerText.length; i++) {
+      var c = play2.map['ans-' + i];
+      if (c && c.classList.contains('hidden')) c.classList.add('target');
+    }
+    play2.input = '';
+    $('hissan-numpad').classList.remove('hidden');
+    $('play-answer').classList.remove('hidden');
+    $('hissan-orosu-btn').classList.add('hidden');
+    renderAnswer2();
   }
 
   function markTargets2(st) {
@@ -400,7 +427,8 @@
     var st = play2.m.steps[play2.idx];
     setBadge(st, play2.level.op);
     if (window.HandWrite) window.HandWrite.clearPads();
-    // じぶんで考えて書くスタイル: 式は聞かず、書く場所を光らせる(まちがえたらヒント)
+    clearTargets2();
+    // 1つずつモード: 式は聞かず、書く場所を光らせる(まちがえたらヒント)
     $('play-text').textContent = st.info ? st.q : '✏️ ひかっている □に はいる 数を かこう!';
     if (!st.info) markTargets2(st);
     $('play-face').textContent = '🦊';
@@ -424,7 +452,7 @@
   }
 
   function inputDigit2(d) {
-    if (!play2.solving || play2.input.length >= 3) return;
+    if (!play2.solving || play2.input.length >= 4) return;
     play2.input += d;
     Effects.sound('tap');
     renderAnswer2();
@@ -445,6 +473,7 @@
 
   function submit2() {
     if (!play2.solving) return;
+    if (play2.direct) { submitDirect2(); return; }
     var st = play2.m.steps[play2.idx];
     if (st.info) return;
     if (play2.input === '') { shake2(); return; }
@@ -460,6 +489,34 @@
       $('play-text').textContent = 'おしい! ヒント: ' + st.q;
       play2.input = '';
       renderAnswer2();
+    }
+  }
+
+  // いきなり答えモードの判定。2回まちがえたら「1つずつモード」へ
+  function submitDirect2() {
+    if (play2.input === '') { shake2(); return; }
+    if (parseInt(play2.input, 10) === play2.m.answer) {
+      for (var i = 0; i < play2.m.answerText.length; i++) reveal2(play2.map, 'ans-' + i);
+      Effects.sound('correct');
+      Effects.burstAt($('play-answer'));
+      $('play-text').textContent = 'せいかい! こたえは ' + play2.m.answerText + '!';
+      play2.solving = false;
+      setTimeout(finishPlay2, 850);
+      return;
+    }
+    play2.miss++;
+    Effects.sound('wrong');
+    shake2();
+    play2.input = '';
+    renderAnswer2();
+    if (play2.miss >= 2) {
+      play2.direct = false;
+      play2.idx = 0;
+      $('play-text').textContent = 'だいじょうぶ! いっしょに 1つずつ とこう!';
+      play2.solving = false;
+      setTimeout(function () { play2.solving = true; showStep2(); }, 1000);
+    } else {
+      $('play-text').textContent = 'おしい! おちついて もういちど かんがえてみよう!';
     }
   }
 
@@ -589,11 +646,12 @@
     levelsFor: function (op) { return LEVELS.filter(function (l) { return l.op === op; }); },
     startHowto: startHowto,
     startPlay: startPlay,
-    setInput: function (str) { if (!play2.solving) return; play2.input = str.slice(0, 3); renderAnswer2(); },
+    setInput: function (str) { if (!play2.solving) return; play2.input = str.slice(0, 4); renderAnswer2(); },
     clearInput: function () { if (!play2.solving) return; play2.input = ''; renderAnswer2(); },
     submitInput: function () { submit2(); },
     expectedInput: function () {
       if (!play2.solving || !play2.m) return '';
+      if (play2.direct) return play2.m.answerText;
       var st = play2.m.steps[play2.idx];
       return (st && !st.info) ? String(st.answer) : '';
     },

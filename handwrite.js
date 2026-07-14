@@ -240,7 +240,7 @@
       }
       return String(best.d);
     });
-    return digits.join('').slice(0, 3);
+    return digits.join('').slice(0, 4);
   }
 
   /* ==================================================================

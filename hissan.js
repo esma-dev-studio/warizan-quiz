@@ -303,9 +303,89 @@
     play.idx = 0;
     play.input = '';
     play.solving = true;
+    play.direct = true; // まずは「いきなり答えを書く」モード
+    play.phase = 'q';   // 'q'=こたえ(商) / 'r'=あまり
+    play.miss = 0;
     play.map = renderGrid($('play-grid'), play.m);
     show('screen-hissan-play');
-    showStep();
+    showDirect();
+  }
+
+  function clearTargets() {
+    var els = $('play-grid').querySelectorAll('.hcell.target');
+    for (var i = 0; i < els.length; i++) els[i].classList.remove('target');
+  }
+
+  // いきなり答えを書くモード
+  function showDirect() {
+    if (window.HandWrite) window.HandWrite.clearPads();
+    var badge = $('hissan-step-badge');
+    badge.textContent = play.phase === 'r' ? 'あまりを かく' : 'こたえを かく';
+    badge.className = 'hissan-step-badge ' + (play.phase === 'r' ? 'step-hiku' : 'step-tateru');
+    $('play-text').textContent = play.phase === 'r'
+      ? '✍️ せいかい! つぎは あまりを かこう!'
+      : '✏️ じぶんで けいさんして、こたえを かこう!';
+    $('play-face').textContent = '🦊';
+    clearTargets();
+    if (play.phase === 'q') {
+      play.m.rounds.forEach(function (rd) {
+        var c = play.map['q-' + rd.col];
+        if (c && c.classList.contains('hidden')) c.classList.add('target');
+      });
+    } else {
+      var c = play.map['r-' + (play.m.rounds.length - 1)];
+      if (c && c.classList.contains('hidden')) c.classList.add('target');
+    }
+    play.input = '';
+    $('hissan-numpad').classList.remove('hidden');
+    $('play-answer').classList.remove('hidden');
+    $('hissan-orosu-btn').classList.add('hidden');
+    renderAnswer();
+  }
+
+  function missDirect() {
+    play.miss++;
+    Effects.sound('wrong');
+    shake();
+    play.input = '';
+    renderAnswer();
+    if (play.miss >= 2) {
+      play.direct = false;
+      play.idx = 0;
+      $('play-text').textContent = 'だいじょうぶ! いっしょに 1つずつ とこう!';
+      play.solving = false;
+      setTimeout(function () { play.solving = true; showStep(); }, 1000);
+    } else {
+      $('play-text').textContent = 'おしい! おちついて もういちど かんがえてみよう!';
+    }
+  }
+
+  function submitDirect() {
+    if (play.input === '') { shake(); return; }
+    var val = parseInt(play.input, 10);
+    if (play.phase === 'q') {
+      if (val !== play.m.answer) { missDirect(); return; }
+      play.m.rounds.forEach(function (rd) { reveal(play.map, 'q-' + rd.col, false); });
+      Effects.sound('correct');
+      Effects.burstAt($('play-answer'));
+      if (play.level === 'rem') {
+        play.phase = 'r';
+        play.solving = false;
+        setTimeout(function () { play.solving = true; showDirect(); }, 750);
+      } else {
+        $('play-text').textContent = 'せいかい! こたえは ' + play.m.answer + '!';
+        play.solving = false;
+        setTimeout(finishPlay, 850);
+      }
+    } else {
+      if (val !== play.m.remainder) { missDirect(); return; }
+      reveal(play.map, 'r-' + (play.m.rounds.length - 1), false);
+      Effects.sound('correct');
+      Effects.burstAt($('play-answer'));
+      $('play-text').textContent = 'せいかい! ' + play.m.answer + ' あまり ' + play.m.remainder + '!';
+      play.solving = false;
+      setTimeout(finishPlay, 850);
+    }
   }
 
   function showStep() {
@@ -314,7 +394,8 @@
     if (window.HandWrite) window.HandWrite.clearPads();
     $('hissan-step-badge').textContent = STEP_LABEL[st.type];
     $('hissan-step-badge').className = 'hissan-step-badge step-' + st.type;
-    // じぶんで考えて書くスタイル: 式は聞かず、書く場所を光らせる(まちがえたらヒント)
+    clearTargets();
+    // 1つずつモード: 式は聞かず、書く場所を光らせる(まちがえたらヒント)
     $('play-text').textContent = st.type === 'orosu' ? questionText(st) : '✏️ ひかっている □に はいる 数を かこう!';
     markTargets(revealKeys(st));
     $('play-face').textContent = '🦊';
@@ -354,6 +435,7 @@
 
   function submit() {
     if (!play.solving) return;
+    if (play.direct) { submitDirect(); return; }
     var st = play.steps[play.idx];
     if (st.type === 'orosu') return;
     if (play.input === '') { shake(); return; }
@@ -498,7 +580,7 @@
     document.addEventListener('keydown', function (e) {
       if (window.__hissanOwner !== 'div') return;
       if (!$('screen-hissan-play').classList.contains('active') || !play.solving) return;
-      var st = play.steps[play.idx];
+      var st = play.direct ? null : play.steps[play.idx];
       if (st && st.type === 'orosu') { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doOrosu(); } return; }
       if (e.key >= '0' && e.key <= '9') inputDigit(e.key);
       else if (e.key === 'Backspace') { e.preventDefault(); clearInput(); }
@@ -508,12 +590,13 @@
 
   // てがき入力(handwrite.js)からのブリッジ
   window.HissanDivInput = {
-    set: function (str) { if (!play.solving) return; play.input = str.slice(0, 3); renderAnswer(); },
+    set: function (str) { if (!play.solving) return; play.input = str.slice(0, 4); renderAnswer(); },
     clear: function () { if (!play.solving) return; play.input = ''; renderAnswer(); },
     submit: function () { submit(); },
     expected: function () {
-      if (!play.solving || !play.steps) return '';
-      var st = play.steps[play.idx];
+      if (!play.solving || !play.m) return '';
+      if (play.direct) return play.phase === 'r' ? String(play.m.remainder) : String(play.m.answer);
+      var st = play.steps && play.steps[play.idx];
       return (st && st.type !== 'orosu') ? String(st.answer) : '';
     }
   };
