@@ -1435,3 +1435,133 @@ body {
 .hissan-nav .btn {
   flex: 1;
 }
+
+/* ===== 4演算ボタン(ホーム)・演算えらび画面 ===== */
+.op-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 18px;
+}
+.op-add { background: linear-gradient(135deg, #66BB6A, #43A047); color: #fff; font-weight: 900; font-size: 1.25rem; }
+.op-add:active { background: linear-gradient(135deg, #43A047, #2E7D32); }
+.op-sub { background: linear-gradient(135deg, #42A5F5, #1E88E5); color: #fff; font-weight: 900; font-size: 1.25rem; }
+.op-sub:active { background: linear-gradient(135deg, #1E88E5, #1565C0); }
+.op-mul { background: linear-gradient(135deg, #FFB84D, #FB8C00); color: #fff; font-weight: 900; font-size: 1.25rem; }
+.op-mul:active { background: linear-gradient(135deg, #FB8C00, #EF6C00); }
+.op-div { background: linear-gradient(135deg, #DA70D6, #C63FC6); color: #fff; font-weight: 900; font-size: 1.25rem; }
+.op-div:active { background: linear-gradient(135deg, #C63FC6, #B02BB2); }
+
+.op-quiz-label {
+  font-weight: 900;
+  color: #FF6B9D;
+  font-size: 1.15rem;
+  margin: 10px 0;
+}
+.op-level-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 400px;
+}
+.level-btn {
+  width: 100%;
+  font-size: 1.1rem;
+}
+.level-btn small {
+  font-weight: 700;
+  opacity: 0.9;
+}
+.coming-soon {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.7);
+  color: #888;
+  border: 2px dashed #bbb;
+  border-radius: 16px;
+  padding: 14px;
+  text-align: center;
+  font-weight: 700;
+}
+.op-hissan-area {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.op-hissan-area .btn-hissan {
+  margin: 0;
+}
+
+/* 九九のだん えらび */
+.dan-row {
+  width: 100%;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 12px;
+  margin: 4px 0 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.dan-tip {
+  text-align: center;
+  font-weight: 900;
+  color: #FF6B9D;
+  margin-bottom: 8px;
+}
+.dan-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.dan-btn {
+  width: 52px;
+  height: 52px;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(135deg, #FFB84D, #FB8C00);
+  box-shadow: 0 4px 0 #E65100;
+  cursor: pointer;
+}
+.dan-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #E65100;
+}
+
+/* ランキングのレベルチップ */
+.rank-levels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 12px;
+}
+.rank-chip {
+  border: 2px solid #FF9800;
+  background: #fff;
+  color: #666;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.rank-chip.active {
+  background: linear-gradient(135deg, #FFB84D, #FF9800);
+  color: #fff;
+}
+
+/* きろく画面の演算別バー色 */
+.stat-bar-fill.add { background: linear-gradient(90deg, #66BB6A, #43A047); }
+.stat-bar-fill.sub { background: linear-gradient(90deg, #42A5F5, #1E88E5); }
+.stat-bar-fill.mul { background: linear-gradient(90deg, #FFB84D, #FB8C00); }
+.stat-bar-fill.div { background: linear-gradient(90deg, #DA70D6, #C63FC6); }

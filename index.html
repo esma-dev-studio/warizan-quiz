@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#FFB300">
-<title>わりざんマスター</title>
-<link rel="stylesheet" href="style.css?v=3">
+<title>けいさんマスター</title>
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
@@ -13,7 +13,7 @@
 
 <!-- ============ ホーム画面 ============ -->
 <section id="screen-home" class="screen active">
-  <h1 class="title">わりざんマスター</h1>
+  <h1 class="title">けいさんマスター</h1>
   <div class="mascot" id="home-mascot">🦊</div>
   <div class="level-box">
     <div class="level-label">レベル <span id="home-level">1</span> <span class="rank-title" id="home-rank">みならい</span></div>
@@ -29,18 +29,29 @@
     <div class="progress-bar"><div class="progress-fill daily-fill" id="daily-fill"></div></div>
     <div class="daily-done hidden" id="daily-done">🎉 きょうの もくひょう たっせい!</div>
   </div>
-  <div class="diff-buttons">
-    <button class="btn diff-easy" id="btn-easy">🌱 かんたん</button>
-    <button class="btn diff-normal" id="btn-normal">🌻 ふつう</button>
-    <button class="btn diff-hard" id="btn-hard">🌋 むずかしい <small>(あまりつき)</small></button>
+  <div class="op-buttons">
+    <button class="btn op-add" data-op-btn="add">➕ たし算</button>
+    <button class="btn op-sub" data-op-btn="sub">➖ ひき算</button>
+    <button class="btn op-mul" data-op-btn="mul">✖️ かけ算</button>
+    <button class="btn op-div" data-op-btn="div">➗ わり算</button>
   </div>
-  <button class="btn btn-hissan" id="btn-hissan">✏️ わり算の ひっ算に ちょうせん</button>
   <div class="home-nav">
     <button class="btn btn-sub" id="btn-stats">📊 きろく</button>
     <button class="btn btn-sub" id="btn-badges">🏅 バッジ</button>
     <button class="btn btn-sub" id="btn-ranking">👑 ランキング</button>
     <button class="btn btn-sub" id="btn-sound">🔊</button>
   </div>
+</section>
+
+<!-- ============ 演算えらび画面 ============ -->
+<section id="screen-op" class="screen">
+  <h2 class="page-title" id="op-title">➕ たし算</h2>
+  <div class="op-quiz-label">⚡ クイズ(10もん しょうぶ)</div>
+  <div class="op-level-list" id="op-quiz-list"></div>
+  <div class="dan-row hidden" id="dan-row"></div>
+  <div class="op-quiz-label">✏️ ひっ算(かいせつつき)</div>
+  <div class="op-hissan-area" id="op-hissan-area"></div>
+  <button class="btn btn-sub btn-back" data-back>🏠 もどる</button>
 </section>
 
 <!-- ============ ゲーム画面 ============ -->
@@ -136,19 +147,24 @@
   <div class="progress-bar stat-milestone-bar"><div class="progress-fill" id="stat-milestone-fill"></div></div>
   <div class="stat-bars">
     <div class="stat-bar-row">
-      <span class="stat-bar-label">🌱 かんたん</span>
-      <div class="stat-bar"><div class="stat-bar-fill easy" id="stat-bar-easy"></div></div>
-      <span class="stat-bar-num" id="stat-num-easy">0</span>
+      <span class="stat-bar-label">➕ たし算</span>
+      <div class="stat-bar"><div class="stat-bar-fill add" id="stat-bar-add"></div></div>
+      <span class="stat-bar-num" id="stat-num-add">0</span>
     </div>
     <div class="stat-bar-row">
-      <span class="stat-bar-label">🌻 ふつう</span>
-      <div class="stat-bar"><div class="stat-bar-fill normal" id="stat-bar-normal"></div></div>
-      <span class="stat-bar-num" id="stat-num-normal">0</span>
+      <span class="stat-bar-label">➖ ひき算</span>
+      <div class="stat-bar"><div class="stat-bar-fill sub" id="stat-bar-sub"></div></div>
+      <span class="stat-bar-num" id="stat-num-sub">0</span>
     </div>
     <div class="stat-bar-row">
-      <span class="stat-bar-label">🌋 むずかしい</span>
-      <div class="stat-bar"><div class="stat-bar-fill hard" id="stat-bar-hard"></div></div>
-      <span class="stat-bar-num" id="stat-num-hard">0</span>
+      <span class="stat-bar-label">✖️ かけ算</span>
+      <div class="stat-bar"><div class="stat-bar-fill mul" id="stat-bar-mul"></div></div>
+      <span class="stat-bar-num" id="stat-num-mul">0</span>
+    </div>
+    <div class="stat-bar-row">
+      <span class="stat-bar-label">➗ わり算</span>
+      <div class="stat-bar"><div class="stat-bar-fill div" id="stat-bar-div"></div></div>
+      <span class="stat-bar-num" id="stat-num-div">0</span>
     </div>
   </div>
   <div class="stat-tiles">
@@ -166,11 +182,13 @@
 <!-- ============ ランキング画面 ============ -->
 <section id="screen-ranking" class="screen">
   <h2 class="page-title">👑 ランキング</h2>
-  <div class="rank-tabs">
-    <button class="rank-tab active" data-diff="easy">🌱 かんたん</button>
-    <button class="rank-tab" data-diff="normal">🌻 ふつう</button>
-    <button class="rank-tab" data-diff="hard">🌋 むずかしい</button>
+  <div class="rank-tabs" id="rank-ops">
+    <button class="rank-tab" data-op="add">➕</button>
+    <button class="rank-tab" data-op="sub">➖</button>
+    <button class="rank-tab" data-op="mul">✖️</button>
+    <button class="rank-tab active" data-op="div">➗</button>
   </div>
+  <div class="rank-levels" id="rank-levels"></div>
   <ol class="rank-list" id="rank-list"></ol>
   <button class="btn btn-sub btn-back" data-back>🏠 もどる</button>
 </section>
@@ -256,10 +274,12 @@
 </div>
 
 <!-- ?v= はキャッシュ対策。アプリを更新したら数字を増やすと、ブラウザが必ず新しい版を読み込みます -->
-<script src="data.js?v=3"></script>
-<script src="badges.js?v=3"></script>
-<script src="effects.js?v=3"></script>
-<script src="app.js?v=3"></script>
-<script src="hissan.js?v=3"></script>
+<script src="data.js?v=4"></script>
+<script src="patterns.js?v=4"></script>
+<script src="badges.js?v=4"></script>
+<script src="badges2.js?v=4"></script>
+<script src="effects.js?v=4"></script>
+<script src="app.js?v=4"></script>
+<script src="hissan.js?v=4"></script>
 </body>
 </html>

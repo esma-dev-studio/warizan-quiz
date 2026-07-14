@@ -444,7 +444,8 @@
   }
 
   function bind() {
-    $('btn-hissan').addEventListener('click', function () { Effects.sound('tap'); show('screen-hissan-menu'); });
+    var bh = $('btn-hissan'); // ホーム直下ボタンは廃止(演算画面から入る)。残っていれば動かす
+    if (bh) bh.addEventListener('click', function () { Effects.sound('tap'); show('screen-hissan-menu'); });
     $('hissan-howto-btn').addEventListener('click', function () { Effects.sound('tap'); startHowto(); });
     $('howto-back').addEventListener('click', function () { Effects.sound('tap'); show('screen-hissan-menu'); });
     $('howto-next').addEventListener('click', function () { Effects.sound('tap'); if (howto.done) { howto.done = false; show('screen-hissan-menu'); } else { howtoNext(); } });

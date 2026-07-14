@@ -10,6 +10,30 @@
   var $ = function (id) { return document.getElementById(id); };
 
   var state = Storage.load();
+
+  // v4移行: わり算専用だった記録を4演算対応の形へうつす(初回のみ)
+  (function migrateV4() {
+    if (state.migratedV4) return;
+    if (state.totalCorrect > 0 && state.opCorrect.div === 0) {
+      state.opCorrect.div = state.totalCorrect;
+      state.opGames.div = state.sessions;
+    }
+    var map = { easy: 'div-1', normal: 'div-2', hard: 'div-3' };
+    var gamesMap = { easy: state.easyGames, normal: state.normalGames, hard: state.hardGames };
+    var corrMap = { easy: state.easyCorrect, normal: state.normalCorrect, hard: state.hardCorrect };
+    for (var k in map) {
+      var pid = map[k];
+      if (!state.rankings2[pid] && state.rankings[k] && state.rankings[k].length) {
+        state.rankings2[pid] = state.rankings[k].slice();
+      }
+      if (!state.patternStats[pid] && (gamesMap[k] || 0) > 0) {
+        state.patternStats[pid] = { games: gamesMap[k] || 0, correct: corrMap[k] || 0, best: state.bestScore[k] || 0 };
+      }
+    }
+    state.migratedV4 = true;
+    Storage.save(state);
+  })();
+
   var game = null;          // 進行中セッション
   var pendingResult = null; // 直前のリザルト(もういちど/ランク登録用)
   var lock = false;         // フィードバック表示中の入力ロック
@@ -72,15 +96,15 @@
   }
 
   /* ---------- ゲーム進行 ---------- */
-  function startGame(diff) {
+  function startGame(pid) {
+    var pat = QuizData.getPattern(pid);
     game = {
-      diff: diff, qIndex: 0, score: 0, correct: 0,
+      pid: pid, pattern: pat, qIndex: 0, score: 0, correct: 0,
       combo: 0, maxCombo: 0, totalTime: 0, qStart: 0,
       q: null, input: { q: '', r: '' }, active: 'q'
     };
     lock = false;
     $('game-score').textContent = '0';
-    $('remainder-wrap').classList.toggle('hidden', diff !== 'hard');
     updateCombo();
     showScreen('game');
     nextQuestion();
@@ -96,12 +120,13 @@
 
   function nextQuestion() {
     game.qIndex++;
-    game.q = QuizData.generateQuestion(game.diff);
+    game.q = QuizData.makeQuestion(game.pid);
     game.input = { q: '', r: '' };
     game.active = 'q';
     $('q-num').textContent = game.qIndex;
     $('progress-fill').style.width = ((game.qIndex - 1) / QUESTIONS * 100) + '%';
-    $('question-text').textContent = game.q.a + ' ÷ ' + game.q.b + ' =';
+    $('question-text').textContent = game.q.a + ' ' + QuizData.OPS[game.pattern.op].sym + ' ' + game.q.b + ' =';
+    $('remainder-wrap').classList.toggle('hidden', !game.q.hasRemainder);
     renderInput();
     hideFeedback();
     $('game-mascot').className = 'mascot mascot-game';
@@ -115,7 +140,7 @@
     qb.textContent = game.input.q === '' ? '?' : game.input.q;
     rb.textContent = game.input.r === '' ? '?' : game.input.r;
     qb.classList.toggle('active', game.active === 'q');
-    rb.classList.toggle('active', game.active === 'r' && game.diff === 'hard');
+    rb.classList.toggle('active', game.active === 'r' && game.q && game.q.hasRemainder);
   }
 
   function inputDigit(d) {
@@ -139,7 +164,7 @@
     renderInput();
   }
   function setActive(which) {
-    if (lock || !game || game.diff !== 'hard') return;
+    if (lock || !game || !game.q || !game.q.hasRemainder) return;
     game.active = which;
     renderInput();
   }
@@ -165,7 +190,7 @@
     game.qStart = 0;
     lock = true;
 
-    var ok = ansQ === q.answer && (game.diff !== 'hard' || ansR === q.remainder);
+    var ok = ansQ === q.answer && (!q.hasRemainder || ansR === q.remainder);
     if (ok) {
       game.correct++;
       game.combo++;
@@ -189,7 +214,7 @@
       Effects.sound('wrong');
       replay($('question-card'), 'shake');
       $('game-mascot').classList.add('wobble');
-      var correctText = 'こたえは ' + q.answer + (game.diff === 'hard' ? ' あまり ' + q.remainder : '');
+      var correctText = 'こたえは ' + q.answer + (q.hasRemainder ? ' あまり ' + q.remainder : '');
       showFeedback(false, correctText, pick(QuizData.ENCOURAGES));
       setTimeout(step, 1900);
     }
@@ -236,9 +261,13 @@
     $('progress-fill').style.width = '100%';
     var s = game;
     game = null;
+    var pat = s.pattern;
+    var op = pat.op;
+    var legacyDiff = s.pid === 'div-1' ? 'easy' : s.pid === 'div-2' ? 'normal' : s.pid === 'div-3' ? 'hard' : null;
     var session = {
+      pid: s.pid,
       score: s.score, correctCount: s.correct, total: QUESTIONS,
-      difficulty: s.diff, maxCombo: s.maxCombo,
+      difficulty: legacyDiff || op, maxCombo: s.maxCombo,
       avgTime: s.totalTime / QUESTIONS, totalTime: s.totalTime,
       perfect: s.correct === QUESTIONS
     };
@@ -258,18 +287,24 @@
     state.totalAnswered += QUESTIONS;
     state.totalScore += s.score;
     if (session.perfect) state.perfectCount++;
-    if (s.diff === 'easy') { state.easyCorrect += s.correct; state.easyGames++; }
-    else if (s.diff === 'normal') { state.normalCorrect += s.correct; state.normalGames++; }
-    else if (s.diff === 'hard') { state.hardCorrect += s.correct; state.hardGames++; }
+    state.opCorrect[op] += s.correct;
+    state.opGames[op]++;
+    if (legacyDiff === 'easy') { state.easyCorrect += s.correct; state.easyGames++; }
+    else if (legacyDiff === 'normal') { state.normalCorrect += s.correct; state.normalGames++; }
+    else if (legacyDiff === 'hard') { state.hardCorrect += s.correct; state.hardGames++; }
     if (s.maxCombo > state.maxCombo) state.maxCombo = s.maxCombo;
-    if (s.score > state.bestScore[s.diff]) state.bestScore[s.diff] = s.score;
+    if (legacyDiff && s.score > state.bestScore[legacyDiff]) state.bestScore[legacyDiff] = s.score;
+    var ps = state.patternStats[s.pid] || (state.patternStats[s.pid] = { games: 0, correct: 0, best: 0 });
+    ps.games++;
+    ps.correct += s.correct;
+    if (s.score > ps.best) ps.best = s.score;
 
     // きょうの もくひょう(デイリーゴール)の更新
     if (state.todayDate !== today) { state.todayDate = today; state.todayCount = 0; }
     state.todayCount += s.correct;
 
-    // XP とレベル(複数レベル一括対応)
-    var gainedXp = Math.round(s.score / 10);
+    // XP とレベル(むずかしいパターンほど倍率が高い)
+    var gainedXp = Math.round(s.score / 10 * pat.mult);
     state.xp += gainedXp;
     var levelsGained = 0;
     while (state.xp >= xpToNext(state.level)) {
@@ -288,16 +323,16 @@
       }
     }
 
-    // ランクイン判定&自動登録(トップ10、名前は PLAYER_NAME 固定で都度入力なし)
-    var list = state.rankings[s.diff];
+    // ランクイン判定&自動登録(パターン別トップ10、名前は PLAYER_NAME 固定で都度入力なし)
+    var list = state.rankings2[s.pid] || (state.rankings2[s.pid] = []);
     var rankIn = s.score > 0 && (list.length < 10 || s.score > list[list.length - 1].score);
     var rankPos = 0;
     if (rankIn) {
       var entry = { name: PLAYER_NAME, score: s.score, time: Math.round(s.totalTime * 10) / 10, date: today };
       list.push(entry);
       list.sort(function (a, b) { return b.score - a.score || a.time - b.time; });
-      state.rankings[s.diff] = list.slice(0, 10);
-      rankPos = state.rankings[s.diff].indexOf(entry) + 1;
+      state.rankings2[s.pid] = list.slice(0, 10);
+      rankPos = state.rankings2[s.pid].indexOf(entry) + 1;
     }
     state.lastName = PLAYER_NAME;
 
@@ -423,15 +458,13 @@
       $('stat-milestone-fill').style.width = ((tc - prev) / (next - prev) * 100) + '%';
     }
 
-    // 難易度べつ せいかい数(よこ棒グラフ。いちばん多いものを満タンにそろえる)
-    var e = state.easyCorrect, n = state.normalCorrect, h = state.hardCorrect;
-    var mx = Math.max(e, n, h, 1);
-    $('stat-num-easy').textContent = e;
-    $('stat-num-normal').textContent = n;
-    $('stat-num-hard').textContent = h;
-    $('stat-bar-easy').style.width = (e / mx * 100) + '%';
-    $('stat-bar-normal').style.width = (n / mx * 100) + '%';
-    $('stat-bar-hard').style.width = (h / mx * 100) + '%';
+    // 演算べつ せいかい数(よこ棒グラフ。いちばん多いものを満タンにそろえる)
+    var oc = state.opCorrect;
+    var mx = Math.max(oc.add, oc.sub, oc.mul, oc.div, 1);
+    ['add', 'sub', 'mul', 'div'].forEach(function (op) {
+      $('stat-num-' + op).textContent = oc[op];
+      $('stat-bar-' + op).style.width = (oc[op] / mx * 100) + '%';
+    });
 
     // タイル(せいかいりつ・パーフェクト数 など)
     var acc = state.totalAnswered > 0 ? Math.round(state.totalCorrect / state.totalAnswered * 100) : 0;
@@ -471,17 +504,119 @@
     showScreen('stats');
   }
 
-  /* ---------- ランキング ---------- */
-  var currentRankTab = 'easy';
-  function showRanking(diff) {
-    if (diff) currentRankTab = diff;
+  /* ---------- 演算えらび画面 ---------- */
+  function recommendedPid(op) {
+    // 「つぎのおすすめ」= その演算で まだ3回あそんでいない いちばんやさしいレベル
+    for (var i = 0; i < QuizData.PATTERNS.length; i++) {
+      var p = QuizData.PATTERNS[i];
+      if (p.op !== op) continue;
+      var ps = state.patternStats[p.id];
+      if (!ps || ps.games < 3) return p.id;
+    }
+    return null;
+  }
+
+  function showOp(op) {
+    var meta = QuizData.OPS[op];
+    $('op-title').textContent = meta.emoji + ' ' + meta.name;
+    var rec = recommendedPid(op);
+
+    var listEl = $('op-quiz-list');
+    listEl.innerHTML = '';
+    var danRow = $('dan-row');
+    danRow.classList.add('hidden');
+    danRow.innerHTML = '';
+
+    QuizData.PATTERNS.forEach(function (p) {
+      if (p.op !== op) return;
+      var btn = document.createElement('button');
+      btn.className = 'btn level-btn ' + meta.btnClass;
+      var label = document.createElement('span');
+      label.textContent = (p.id === rec ? '🌟 ' : '') + p.name + (p.sub ? '(' + p.sub + ')' : '');
+      btn.appendChild(label);
+      btn.addEventListener('click', function () {
+        Effects.sound('tap');
+        if (p.needsDan) buildDanRow(p.id);
+        else startGame(p.id);
+      });
+      listEl.appendChild(btn);
+    });
+
+    var hArea = $('op-hissan-area');
+    hArea.innerHTML = '';
+    if (op === 'div') {
+      var hb = document.createElement('button');
+      hb.className = 'btn btn-hissan';
+      hb.textContent = '✏️ わり算の ひっ算(かいせつつき)';
+      hb.addEventListener('click', function () { Effects.sound('tap'); showScreen('hissan-menu'); });
+      hArea.appendChild(hb);
+    } else {
+      var soon = document.createElement('div');
+      soon.className = 'coming-soon';
+      soon.textContent = '✏️ ' + meta.name + 'の ひっ算は もうすぐ とうじょう!';
+      hArea.appendChild(soon);
+    }
+    showScreen('op');
+  }
+
+  function buildDanRow(pid) {
+    var danRow = $('dan-row');
+    if (!danRow.classList.contains('hidden')) { danRow.classList.add('hidden'); return; }
+    danRow.innerHTML = '';
+    var tip = document.createElement('div');
+    tip.className = 'dan-tip';
+    tip.textContent = 'どの だんに する?';
+    danRow.appendChild(tip);
+    var wrap = document.createElement('div');
+    wrap.className = 'dan-btns';
+    for (var d = 2; d <= 9; d++) {
+      (function (dd) {
+        var b = document.createElement('button');
+        b.className = 'dan-btn';
+        b.textContent = dd;
+        b.addEventListener('click', function () {
+          Effects.sound('tap');
+          QuizData.setDan(dd);
+          startGame(pid);
+        });
+        wrap.appendChild(b);
+      })(d);
+    }
+    danRow.appendChild(wrap);
+    danRow.classList.remove('hidden');
+  }
+
+  /* ---------- ランキング(演算タブ+レベルチップ) ---------- */
+  var currentRankOp = 'div';
+  var currentRankPid = 'div-1';
+  function showRanking(op, pid) {
+    if (op) currentRankOp = op;
+    var pats = [];
+    for (var pi = 0; pi < QuizData.PATTERNS.length; pi++) {
+      if (QuizData.PATTERNS[pi].op === currentRankOp) pats.push(QuizData.PATTERNS[pi]);
+    }
+    if (pid) currentRankPid = pid;
+    var found = false;
+    for (var fi = 0; fi < pats.length; fi++) { if (pats[fi].id === currentRankPid) found = true; }
+    if (!found) currentRankPid = pats[0].id;
+
     var tabs = document.querySelectorAll('.rank-tab');
     for (var i = 0; i < tabs.length; i++) {
-      tabs[i].classList.toggle('active', tabs[i].getAttribute('data-diff') === currentRankTab);
+      tabs[i].classList.toggle('active', tabs[i].getAttribute('data-op') === currentRankOp);
     }
+    var lv = $('rank-levels');
+    lv.innerHTML = '';
+    pats.forEach(function (p) {
+      var chip = document.createElement('button');
+      chip.className = 'rank-chip' + (p.id === currentRankPid ? ' active' : '');
+      chip.textContent = p.name + (p.sub ? '(' + p.sub + ')' : '');
+      chip.addEventListener('click', function () { Effects.sound('tap'); showRanking(null, p.id); });
+      lv.appendChild(chip);
+    });
+
     var ol = $('rank-list');
     ol.innerHTML = '';
-    var list = state.rankings[currentRankTab] || [];
+    var list = state.rankings2[currentRankPid] || [];
     if (list.length === 0) {
       var empty = document.createElement('li');
       empty.className = 'rank-empty';
@@ -516,16 +651,20 @@
 
   /* ---------- イベント登録 ---------- */
   function bind() {
-    $('btn-easy').addEventListener('click', function () { Effects.sound('tap'); startGame('easy'); });
-    $('btn-normal').addEventListener('click', function () { Effects.sound('tap'); startGame('normal'); });
-    $('btn-hard').addEventListener('click', function () { Effects.sound('tap'); startGame('hard'); });
+    var opBtns = document.querySelectorAll('[data-op-btn]');
+    for (var ob = 0; ob < opBtns.length; ob++) {
+      opBtns[ob].addEventListener('click', function (e) {
+        Effects.sound('tap');
+        showOp(e.currentTarget.getAttribute('data-op-btn'));
+      });
+    }
     $('btn-badges').addEventListener('click', function () { Effects.sound('tap'); showBadges(); });
-    $('btn-ranking').addEventListener('click', function () { Effects.sound('tap'); showRanking('easy'); });
+    $('btn-ranking').addEventListener('click', function () { Effects.sound('tap'); showRanking(currentRankOp); });
     $('btn-stats').addEventListener('click', function () { Effects.sound('tap'); showStats(); });
     $('btn-quit').addEventListener('click', quitGame);
     $('btn-retry').addEventListener('click', function () {
       Effects.sound('tap');
-      if (pendingResult) startGame(pendingResult.session.difficulty);
+      if (pendingResult) startGame(pendingResult.session.pid);
     });
     $('btn-home').addEventListener('click', function () { Effects.sound('tap'); goHome(); });
     $('btn-sound').addEventListener('click', function () {
@@ -545,7 +684,7 @@
     for (var j = 0; j < tabs.length; j++) {
       tabs[j].addEventListener('click', function (e) {
         Effects.sound('tap');
-        showRanking(e.currentTarget.getAttribute('data-diff'));
+        showRanking(e.currentTarget.getAttribute('data-op'));
       });
     }
 
