@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 
@@ -103,6 +103,15 @@
     <button class="num-btn" data-num="0">0</button>
     <button class="num-btn num-enter" data-action="enter">OK!</button>
   </div>
+
+  <div class="writepad" id="quiz-writepad">
+    <canvas class="write-canvas" id="quiz-canvas"></canvas>
+    <div class="writepad-row">
+      <button class="btn btn-sub wp-clear">けす</button>
+      <button class="btn wp-ok">OK!</button>
+    </div>
+  </div>
+  <button class="input-toggle" id="quiz-input-toggle">✍️ てがきで こたえる</button>
 
   <div class="feedback-overlay" id="feedback-overlay">
     <div class="feedback-text" id="feedback-text">せいかい!</div>
@@ -253,6 +262,14 @@
     <button class="num-btn" data-num="0">0</button>
     <button class="num-btn num-enter" data-action="enter">OK!</button>
   </div>
+  <div class="writepad" id="hissan-writepad">
+    <canvas class="write-canvas" id="hissan-canvas"></canvas>
+    <div class="writepad-row">
+      <button class="btn btn-sub wp-clear">けす</button>
+      <button class="btn wp-ok">OK!</button>
+    </div>
+  </div>
+  <button class="input-toggle" id="hissan-input-toggle">✍️ てがきで こたえる</button>
   <button class="btn btn-orosu hidden" id="hissan-orosu-btn">⬇ おろす!</button>
 </section>
 
@@ -280,13 +297,14 @@
 </div>
 
 <!-- ?v= はキャッシュ対策。アプリを更新したら数字を増やすと、ブラウザが必ず新しい版を読み込みます -->
-<script src="data.js?v=5"></script>
-<script src="patterns.js?v=5"></script>
-<script src="badges.js?v=5"></script>
-<script src="badges2.js?v=5"></script>
-<script src="effects.js?v=5"></script>
-<script src="app.js?v=5"></script>
-<script src="hissan.js?v=5"></script>
-<script src="hissan2.js?v=5"></script>
+<script src="data.js?v=7"></script>
+<script src="patterns.js?v=7"></script>
+<script src="badges.js?v=7"></script>
+<script src="badges2.js?v=7"></script>
+<script src="effects.js?v=7"></script>
+<script src="app.js?v=7"></script>
+<script src="hissan.js?v=7"></script>
+<script src="hissan2.js?v=7"></script>
+<script src="handwrite.js?v=7"></script>
 </body>
 </html>

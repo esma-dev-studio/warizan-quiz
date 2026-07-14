@@ -1556,6 +1556,84 @@ button:focus-visible {
   flex: 1;
 }
 
+/* ===== てがき入力パッド ===== */
+.writepad {
+  display: none;
+  width: 100%;
+  max-width: 330px;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+body.hw-on .writepad {
+  display: flex;
+}
+
+body.hw-on .writepad.wp-off {
+  display: none;
+}
+
+body.hw-on #numpad,
+body.hw-on #hissan-numpad {
+  display: none !important;
+}
+
+.write-canvas {
+  width: 100%;
+  height: 170px;
+  display: block;
+  background: #FFFDF8;
+  border: 3px dashed var(--line-deep);
+  border-radius: var(--r-md);
+  touch-action: none;
+  -webkit-user-select: none;
+  cursor: crosshair;
+}
+
+.writepad-row {
+  display: flex;
+  gap: 10px;
+}
+
+.writepad-row .wp-clear {
+  flex: 1;
+  min-height: 52px;
+}
+
+.writepad-row .wp-ok {
+  flex: 1.4;
+  min-height: 52px;
+  background: var(--ok);
+  box-shadow: 0 5px 0 var(--c-add-deep), 0 12px 20px rgba(63, 184, 104, 0.3);
+}
+
+.writepad-row .wp-ok:active {
+  box-shadow: 0 1px 0 var(--c-add-deep);
+}
+
+.input-toggle {
+  margin-top: 12px;
+  font-weight: 900;
+  font-size: 0.92rem;
+  color: var(--c-sub);
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  padding: 9px 20px;
+  box-shadow: 0 3px 0 var(--line-deep);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.input-toggle:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--line-deep);
+}
+
+.input-toggle.wp-off {
+  display: none;
+}
+
 /* ===== キーフレーム ===== */
 @keyframes screen-in {
   from { opacity: 0; transform: translateY(14px); }

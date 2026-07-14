@@ -130,6 +130,7 @@
     renderInput();
     hideFeedback();
     $('game-mascot').className = 'mascot mascot-game';
+    if (window.HandWrite) window.HandWrite.clearPads();
     lock = false;
     game.qStart = performance.now();
   }
@@ -735,6 +736,11 @@
     xpToNext: xpToNext,
     goHome: goHome,
     showOp: showOp,
+    hw: { // てがき入力(handwrite.js)からのブリッジ
+      setInput: function (str) { if (!game || lock) return; game.input[game.active] = str.slice(0, 3); renderInput(); },
+      clear: function () { if (!game || lock) return; game.input[game.active] = ''; renderInput(); },
+      submit: function () { submit(); }
+    },
     save: function () { Storage.save(state); },
     grantXp: function (xp) { // ひっ算クリアの ごほうび。レベルアップ数を返す
       state.xp += xp;

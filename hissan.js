@@ -300,6 +300,7 @@
   function showStep() {
     var st = play.steps[play.idx];
     curDivisor = play.m.divisor;
+    if (window.HandWrite) window.HandWrite.clearPads();
     $('hissan-step-badge').textContent = STEP_LABEL[st.type];
     $('hissan-step-badge').className = 'hissan-step-badge step-' + st.type;
     $('play-text').textContent = questionText(st);
@@ -491,6 +492,13 @@
       else if (e.key === 'Enter') { e.preventDefault(); submit(); }
     });
   }
+
+  // てがき入力(handwrite.js)からのブリッジ
+  window.HissanDivInput = {
+    set: function (str) { if (!play.solving) return; play.input = str.slice(0, 3); renderAnswer(); },
+    clear: function () { if (!play.solving) return; play.input = ''; renderAnswer(); },
+    submit: function () { submit(); }
+  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bind);

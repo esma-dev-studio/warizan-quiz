@@ -387,6 +387,7 @@
   function showStep2() {
     var st = play2.m.steps[play2.idx];
     setBadge(st, play2.level.op);
+    if (window.HandWrite) window.HandWrite.clearPads();
     $('play-text').textContent = st.q;
     $('play-face').textContent = '🦊';
     play2.input = '';
@@ -574,6 +575,9 @@
     levelsFor: function (op) { return LEVELS.filter(function (l) { return l.op === op; }); },
     startHowto: startHowto,
     startPlay: startPlay,
+    setInput: function (str) { if (!play2.solving) return; play2.input = str.slice(0, 3); renderAnswer2(); },
+    clearInput: function () { if (!play2.solving) return; play2.input = ''; renderAnswer2(); },
+    submitInput: function () { submit2(); },
     _test: { buildAdd: buildAdd, buildSub: buildSub, buildMul1: buildMul1, buildMul2: buildMul2, LEVELS: LEVELS }
   };
 
