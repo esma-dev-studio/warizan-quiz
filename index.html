@@ -3,9 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#FFB300">
+<meta name="theme-color" content="#FF5D8F">
 <title>けいさんマスター</title>
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 
@@ -13,8 +16,11 @@
 
 <!-- ============ ホーム画面 ============ -->
 <section id="screen-home" class="screen active">
-  <h1 class="title">けいさんマスター</h1>
-  <div class="mascot" id="home-mascot">🦊</div>
+  <div class="logo">
+    <div class="logo-mascot" id="home-mascot">🦊</div>
+    <h1 class="title"><span class="t1">けいさん</span><span class="t2">マスター</span></h1>
+    <div class="logo-sub">たのしく といて、どんどん つよくなろう!</div>
+  </div>
   <div class="level-box">
     <div class="level-label">レベル <span id="home-level">1</span> <span class="rank-title" id="home-rank">みならい</span></div>
     <div class="xp-bar"><div class="xp-fill" id="home-xp-fill"></div></div>
@@ -30,10 +36,10 @@
     <div class="daily-done hidden" id="daily-done">🎉 きょうの もくひょう たっせい!</div>
   </div>
   <div class="op-buttons">
-    <button class="btn op-add" data-op-btn="add">➕ たし算</button>
-    <button class="btn op-sub" data-op-btn="sub">➖ ひき算</button>
-    <button class="btn op-mul" data-op-btn="mul">✖️ かけ算</button>
-    <button class="btn op-div" data-op-btn="div">➗ わり算</button>
+    <button class="btn op-add" data-op-btn="add"><span class="op-glyph">＋</span><span class="op-label">たし算</span></button>
+    <button class="btn op-sub" data-op-btn="sub"><span class="op-glyph">−</span><span class="op-label">ひき算</span></button>
+    <button class="btn op-mul" data-op-btn="mul"><span class="op-glyph">×</span><span class="op-label">かけ算</span></button>
+    <button class="btn op-div" data-op-btn="div"><span class="op-glyph">÷</span><span class="op-label">わり算</span></button>
   </div>
   <div class="home-nav">
     <button class="btn btn-sub" id="btn-stats">📊 きろく</button>
