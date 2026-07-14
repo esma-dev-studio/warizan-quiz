@@ -1489,8 +1489,14 @@ body {
   width: 100%;
   max-width: 400px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 16px;
+}
+.op-hissan-area .level-btn,
+.op-hissan-area .btn-sub {
+  width: 100%;
 }
 .op-hissan-area .btn-hissan {
   margin: 0;
@@ -1558,6 +1564,35 @@ body {
 .rank-chip.active {
   background: linear-gradient(135deg, #FFB84D, #FF9800);
   color: #fff;
+}
+
+/* ===== ひっ算(たし算・ひき算・かけ算)の追加セル ===== */
+.hcell.carry {
+  height: 26px;
+  font-size: 1rem;
+  color: #FB8C00;
+  align-items: flex-end;
+}
+.hcell.note {
+  height: 26px;
+  font-size: 1rem;
+  color: #43A047;
+  align-items: flex-end;
+}
+.hcell.slashed {
+  position: relative;
+  color: #bbb;
+}
+.hcell.slashed::after {
+  content: '';
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 50%;
+  height: 3px;
+  background: #E53935;
+  transform: rotate(-28deg);
+  border-radius: 2px;
 }
 
 /* きろく画面の演算別バー色 */

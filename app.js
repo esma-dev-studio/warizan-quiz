@@ -550,11 +550,19 @@
       hb.textContent = '✏️ わり算の ひっ算(かいせつつき)';
       hb.addEventListener('click', function () { Effects.sound('tap'); showScreen('hissan-menu'); });
       hArea.appendChild(hb);
-    } else {
-      var soon = document.createElement('div');
-      soon.className = 'coming-soon';
-      soon.textContent = '✏️ ' + meta.name + 'の ひっ算は もうすぐ とうじょう!';
-      hArea.appendChild(soon);
+    } else if (window.Hissan2) {
+      var how = document.createElement('button');
+      how.className = 'btn btn-sub';
+      how.textContent = '📖 やり方を みる';
+      how.addEventListener('click', function () { Effects.sound('tap'); window.Hissan2.startHowto(op); });
+      hArea.appendChild(how);
+      window.Hissan2.levelsFor(op).forEach(function (lv) {
+        var lb = document.createElement('button');
+        lb.className = 'btn level-btn ' + meta.btnClass;
+        lb.textContent = '✏️ ' + lv.name;
+        lb.addEventListener('click', function () { Effects.sound('tap'); window.Hissan2.startPlay(lv.id); });
+        hArea.appendChild(lb);
+      });
     }
     showScreen('op');
   }
@@ -726,6 +734,7 @@
     state: state,
     xpToNext: xpToNext,
     goHome: goHome,
+    showOp: showOp,
     save: function () { Storage.save(state); },
     grantXp: function (xp) { // ひっ算クリアの ごほうび。レベルアップ数を返す
       state.xp += xp;

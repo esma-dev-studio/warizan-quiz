@@ -248,6 +248,7 @@
   var howto = { m: null, steps: null, idx: 0, map: null };
 
   function startHowto() {
+    window.__hissanOwner = 'div'; // 共有画面(howto/play/result)の現在の持ち主
     howto.m = buildHissan(84, 3); // れい: 84 ÷ 3 = 28
     curDivisor = howto.m.divisor;
     howto.steps = buildSteps(howto.m);
@@ -283,6 +284,7 @@
   var play = { m: null, steps: null, idx: 0, map: null, input: '', level: 'd2', solving: false };
 
   function startPlay(level) {
+    window.__hissanOwner = 'div';
     play.level = level;
     play.m = genProblem(level);
     curDivisor = play.m.divisor;
@@ -304,10 +306,12 @@
     $('play-face').textContent = '🦊';
     play.input = '';
     if (st.type === 'orosu') {
-      // おろすは ボタン1つ
+      // おろすは ボタン1つ(hissan2 がラベルを変えることがあるので毎回もどす)
       $('hissan-numpad').classList.add('hidden');
       $('play-answer').classList.add('hidden');
-      $('hissan-orosu-btn').classList.remove('hidden');
+      var ob = $('hissan-orosu-btn');
+      ob.textContent = '⬇ おろす!';
+      ob.classList.remove('hidden');
     } else {
       $('hissan-numpad').classList.remove('hidden');
       $('play-answer').classList.remove('hidden');
@@ -447,8 +451,8 @@
     var bh = $('btn-hissan'); // ホーム直下ボタンは廃止(演算画面から入る)。残っていれば動かす
     if (bh) bh.addEventListener('click', function () { Effects.sound('tap'); show('screen-hissan-menu'); });
     $('hissan-howto-btn').addEventListener('click', function () { Effects.sound('tap'); startHowto(); });
-    $('howto-back').addEventListener('click', function () { Effects.sound('tap'); show('screen-hissan-menu'); });
-    $('howto-next').addEventListener('click', function () { Effects.sound('tap'); if (howto.done) { howto.done = false; show('screen-hissan-menu'); } else { howtoNext(); } });
+    $('howto-back').addEventListener('click', function () { if (window.__hissanOwner !== 'div') return; Effects.sound('tap'); show('screen-hissan-menu'); });
+    $('howto-next').addEventListener('click', function () { if (window.__hissanOwner !== 'div') return; Effects.sound('tap'); if (howto.done) { howto.done = false; show('screen-hissan-menu'); } else { howtoNext(); } });
 
     var levelBtns = document.querySelectorAll('[data-hlevel]');
     for (var i = 0; i < levelBtns.length; i++) {
@@ -458,15 +462,16 @@
       });
     }
 
-    $('hissan-quit').addEventListener('click', function () { play.solving = false; show('screen-hissan-menu'); });
-    $('hissan-orosu-btn').addEventListener('click', doOrosu);
-    $('hissan-next-btn').addEventListener('click', function () { Effects.sound('tap'); startPlay(play.level); });
-    $('hissan-menu-btn').addEventListener('click', function () { Effects.sound('tap'); show('screen-hissan-menu'); });
+    $('hissan-quit').addEventListener('click', function () { if (window.__hissanOwner !== 'div') return; play.solving = false; show('screen-hissan-menu'); });
+    $('hissan-orosu-btn').addEventListener('click', function () { if (window.__hissanOwner !== 'div') return; doOrosu(); });
+    $('hissan-next-btn').addEventListener('click', function () { if (window.__hissanOwner !== 'div') return; Effects.sound('tap'); startPlay(play.level); });
+    $('hissan-menu-btn').addEventListener('click', function () { if (window.__hissanOwner !== 'div') return; Effects.sound('tap'); show('screen-hissan-menu'); });
 
     // メニュー/各画面の「もどる」(data-back)はホームへ。app.js も同名で拾うが二重実行でも害なし
     $('screen-hissan-menu').querySelector('[data-back]').addEventListener('click', backHome);
 
     $('hissan-numpad').addEventListener('click', function (e) {
+      if (window.__hissanOwner !== 'div') return;
       var btn = e.target.closest('button');
       if (!btn) return;
       var num = btn.getAttribute('data-num');
@@ -477,6 +482,7 @@
     });
 
     document.addEventListener('keydown', function (e) {
+      if (window.__hissanOwner !== 'div') return;
       if (!$('screen-hissan-play').classList.contains('active') || !play.solving) return;
       var st = play.steps[play.idx];
       if (st && st.type === 'orosu') { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doOrosu(); } return; }
