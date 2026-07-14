@@ -230,7 +230,18 @@
     var el = map[key];
     if (!el) return;
     el.classList.remove('hidden');
+    el.classList.remove('target');
     el.classList.add(drop ? 'drop-in' : 'pop-show');
+  }
+
+  // いま書く場所のマスを光らせる(答えの文字は透明のまま)
+  function markTargets(keys) {
+    keys.forEach(function (k) {
+      var el = play.map[k];
+      if (el && el.classList.contains('hcell') && el.classList.contains('hidden')) {
+        el.classList.add('target');
+      }
+    });
   }
 
   /* ===================================================================
@@ -303,7 +314,9 @@
     if (window.HandWrite) window.HandWrite.clearPads();
     $('hissan-step-badge').textContent = STEP_LABEL[st.type];
     $('hissan-step-badge').className = 'hissan-step-badge step-' + st.type;
-    $('play-text').textContent = questionText(st);
+    // じぶんで考えて書くスタイル: 式は聞かず、書く場所を光らせる(まちがえたらヒント)
+    $('play-text').textContent = st.type === 'orosu' ? questionText(st) : '✏️ ひかっている □に はいる 数を かこう!';
+    markTargets(revealKeys(st));
     $('play-face').textContent = '🦊';
     play.input = '';
     if (st.type === 'orosu') {
@@ -363,7 +376,7 @@
     Effects.sound('wrong');
     shake();
     $('play-face').textContent = '🦊';
-    $('play-text').textContent = hintText(st);
+    $('play-text').textContent = 'おしい! ' + questionText(st) + ' ' + hintText(st);
     play.input = '';
     renderAnswer();
   }
@@ -497,7 +510,12 @@
   window.HissanDivInput = {
     set: function (str) { if (!play.solving) return; play.input = str.slice(0, 3); renderAnswer(); },
     clear: function () { if (!play.solving) return; play.input = ''; renderAnswer(); },
-    submit: function () { submit(); }
+    submit: function () { submit(); },
+    expected: function () {
+      if (!play.solving || !play.steps) return '';
+      var st = play.steps[play.idx];
+      return (st && st.type !== 'orosu') ? String(st.answer) : '';
+    }
   };
 
   if (document.readyState === 'loading') {

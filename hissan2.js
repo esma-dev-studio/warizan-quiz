@@ -319,6 +319,7 @@
     var el = map[key];
     if (!el) return;
     el.classList.remove('hidden');
+    el.classList.remove('target');
     el.classList.add('pop-show');
   }
 
@@ -384,11 +385,24 @@
     showStep2();
   }
 
+  function markTargets2(st) {
+    st.reveals.forEach(function (k) {
+      // 自動で書かれるメモ(くり上がり・くり下がりの書きなおし)は対象外
+      if (k.indexOf('slash-') === 0 || k.indexOf('note-') === 0 || k.indexOf('carry-') === 0) return;
+      var el = play2.map[k];
+      if (el && el.classList.contains('hcell') && el.classList.contains('hidden')) {
+        el.classList.add('target');
+      }
+    });
+  }
+
   function showStep2() {
     var st = play2.m.steps[play2.idx];
     setBadge(st, play2.level.op);
     if (window.HandWrite) window.HandWrite.clearPads();
-    $('play-text').textContent = st.q;
+    // じぶんで考えて書くスタイル: 式は聞かず、書く場所を光らせる(まちがえたらヒント)
+    $('play-text').textContent = st.info ? st.q : '✏️ ひかっている □に はいる 数を かこう!';
+    if (!st.info) markTargets2(st);
     $('play-face').textContent = '🦊';
     play2.input = '';
     if (st.info) {
@@ -443,7 +457,7 @@
     } else {
       Effects.sound('wrong');
       shake2();
-      $('play-text').textContent = 'おしい! もういちど。' + st.q;
+      $('play-text').textContent = 'おしい! ヒント: ' + st.q;
       play2.input = '';
       renderAnswer2();
     }
@@ -578,6 +592,11 @@
     setInput: function (str) { if (!play2.solving) return; play2.input = str.slice(0, 3); renderAnswer2(); },
     clearInput: function () { if (!play2.solving) return; play2.input = ''; renderAnswer2(); },
     submitInput: function () { submit2(); },
+    expectedInput: function () {
+      if (!play2.solving || !play2.m) return '';
+      var st = play2.m.steps[play2.idx];
+      return (st && !st.info) ? String(st.answer) : '';
+    },
     _test: { buildAdd: buildAdd, buildSub: buildSub, buildMul1: buildMul1, buildMul2: buildMul2, LEVELS: LEVELS }
   };
 

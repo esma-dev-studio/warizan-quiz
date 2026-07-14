@@ -1434,6 +1434,16 @@ button:focus-visible {
   opacity: 0;
 }
 
+/* いま書く場所(答えの文字は透明のまま、わくだけ光る) */
+.hcell.target {
+  opacity: 1 !important;
+  color: transparent !important;
+  border: 3px dashed var(--gold);
+  border-radius: 10px;
+  background: rgba(255, 201, 60, 0.14);
+  animation: pulse-soft 1.2s ease-in-out infinite;
+}
+
 .hcell.pop-show {
   animation: pop-in 0.35s ease;
 }

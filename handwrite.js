@@ -174,19 +174,25 @@
     return { d: t.d, pts: pts, ar: pts.ar, nStrokes: t.s.length };
   });
 
-  // 1つの数字(ストローク群)を判定して {digit, score} を返す
-  function classifyGroup(strokes) {
+  // 1つの数字(ストローク群)を、近い順のランキングで返す
+  function rankGroup(strokes) {
     var pts = normalize(resampleStrokes(strokes, N_POINTS));
-    var best = { d: '?', score: 1e9 };
+    var list = [];
     for (var i = 0; i < TEMPLATES.length; i++) {
       var t = TEMPLATES[i];
       var d = greedyMatch(pts, t.pts);
       // たてよこ比のちがいをペナルティに(「1」と「0」の区別などに効く)
       var arPen = Math.abs(Math.log((pts.ar + 0.05) / (t.ar + 0.05)));
-      var score = d * (1 + 0.32 * Math.min(arPen, 1.2));
-      if (score < best.score) best = { d: t.d, score: score };
+      list.push({ d: t.d, score: d * (1 + 0.32 * Math.min(arPen, 1.2)) });
     }
-    return best;
+    list.sort(function (a, b) { return a.score - b.score; });
+    var seen = {}, out = [];
+    list.forEach(function (e) { if (!seen[e.d]) { seen[e.d] = true; out.push(e); } });
+    return out;
+  }
+
+  function classifyGroup(strokes) {
+    return rankGroup(strokes)[0];
   }
 
   // ストロークを「よこの位置」で桁ごとにまとめる(重なるものは同じ数字、はなれていたら別の数字)
@@ -218,10 +224,22 @@
     return groups;
   }
 
-  function recognize(strokes, canvasWidth) {
+  // expected: いま求められている答え(わかっている場合)。子どもの字がその数字に
+  // じゅうぶん近ければ優先して採用する(実機の認識ミスをへらす)
+  function recognize(strokes, canvasWidth, expected) {
     if (!strokes.length) return '';
     var groups = segment(strokes, canvasWidth);
-    var digits = groups.map(function (g) { return String(classifyGroup(g.strokes).d); });
+    var digits = groups.map(function (g, gi) {
+      var ranked = rankGroup(g.strokes);
+      var best = ranked[0];
+      if (expected && expected.length === groups.length) {
+        var want = expected.charAt(gi);
+        for (var i = 0; i < ranked.length; i++) {
+          if (String(ranked[i].d) === want && ranked[i].score <= best.score * 1.28) return want;
+        }
+      }
+      return String(best.d);
+    });
     return digits.join('').slice(0, 3);
   }
 
@@ -295,8 +313,18 @@
     }
 
     function runRecognize() {
-      var text = recognize(strokes, canvas.width / dpr);
+      var expected = cfg.getExpected ? cfg.getExpected() : '';
+      var text = recognize(strokes, canvas.width / dpr, expected);
       if (text) cfg.setInput(text);
+    }
+
+    function strokeExtent(s) {
+      var minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+      s.forEach(function (p) {
+        minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
+        minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
+      });
+      return Math.max(maxX - minX, maxY - minY);
     }
 
     canvas.addEventListener('pointerdown', function (e) {
@@ -315,6 +343,19 @@
     });
     function endStroke(e) {
       if (!cur) return;
+      // ちいさな かすれ(筆とび)は直前のストロークにつなぐ
+      var last = strokes[strokes.length - 1];
+      if (last && strokeExtent(cur) < 14) {
+        var lp = last[last.length - 1], fp = cur[0];
+        if (Math.hypot(lp.x - fp.x, lp.y - fp.y) < 16) {
+          last.push.apply(last, cur);
+          cur = null;
+          redraw();
+          if (timer) clearTimeout(timer);
+          timer = setTimeout(runRecognize, 550);
+          return;
+        }
+      }
       strokes.push(cur);
       cur = null;
       redraw();
@@ -338,7 +379,9 @@
     });
     wrap.querySelector('.wp-ok').addEventListener('click', function () {
       Effects.sound('tap');
-      if (timer) { clearTimeout(timer); runRecognize(); }
+      if (cur) { strokes.push(cur); cur = null; redraw(); } // 書きかけも確定
+      if (timer) clearTimeout(timer);
+      if (strokes.length) runRecognize(); // 認識まちでも必ずその場で認識してから送信
       cfg.submit();
     });
 
@@ -380,7 +423,8 @@
       wrapId: 'quiz-writepad', canvasId: 'quiz-canvas', numpadId: 'numpad', toggleId: 'quiz-input-toggle',
       setInput: function (str) { var app = App(); if (app && app.hw) app.hw.setInput(str); },
       clearInput: function () { var app = App(); if (app && app.hw) app.hw.clear(); },
-      submit: function () { var app = App(); if (app && app.hw) app.hw.submit(); }
+      submit: function () { var app = App(); if (app && app.hw) app.hw.submit(); },
+      getExpected: function () { var app = App(); return (app && app.hw && app.hw.getExpected) ? app.hw.getExpected() : ''; }
     }));
     pads.push(makePad({
       wrapId: 'hissan-writepad', canvasId: 'hissan-canvas', numpadId: 'hissan-numpad', toggleId: 'hissan-input-toggle',
@@ -395,6 +439,10 @@
       submit: function () {
         if (window.__hissanOwner === 'div') { if (window.HissanDivInput) window.HissanDivInput.submit(); }
         else if (window.Hissan2) window.Hissan2.submitInput();
+      },
+      getExpected: function () {
+        if (window.__hissanOwner === 'div') { return window.HissanDivInput ? window.HissanDivInput.expected() : ''; }
+        return window.Hissan2 && window.Hissan2.expectedInput ? window.Hissan2.expectedInput() : '';
       }
     }));
 

@@ -168,6 +168,7 @@
     if (lock || !game || !game.q || !game.q.hasRemainder) return;
     game.active = which;
     renderInput();
+    if (window.HandWrite) window.HandWrite.clearPads(); // てがき: 次のボックス用にまっさらに
   }
 
   function speedBonus(sec) {
@@ -739,7 +740,11 @@
     hw: { // てがき入力(handwrite.js)からのブリッジ
       setInput: function (str) { if (!game || lock) return; game.input[game.active] = str.slice(0, 3); renderInput(); },
       clear: function () { if (!game || lock) return; game.input[game.active] = ''; renderInput(); },
-      submit: function () { submit(); }
+      submit: function () { submit(); },
+      getExpected: function () {
+        if (!game || !game.q || lock) return '';
+        return game.active === 'r' ? String(game.q.remainder) : String(game.q.answer);
+      }
     },
     save: function () { Storage.save(state); },
     grantXp: function (xp) { // ひっ算クリアの ごほうび。レベルアップ数を返す
