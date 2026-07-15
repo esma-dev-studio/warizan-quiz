@@ -90,9 +90,69 @@
     if (scale < 1e-6) scale = 1;
     var out = [];
     for (i = 0; i < points.length; i++) {
-      out.push({ x: (points[i].x - cx) / scale, y: (points[i].y - cy) / scale });
+      out.push({ x: (points[i].x - cx) / scale, y: (points[i].y - cy) / scale, s: points[i].s });
     }
     out.ar = h < 1e-6 ? 99 : w / h; // たてよこ比(補助特徴)
+    return out;
+  }
+
+  /* ---- 形の特徴量(まぎらわしい数字の判別を強化) ---- */
+
+  // いちばん長いストロークの「閉じぐあい」(始点と終点の近さ。0や8は閉じる、5や7は開く)
+  function closureOf(pts) {
+    var byStroke = {};
+    pts.forEach(function (p) {
+      var k = p.s || 0;
+      if (!byStroke[k]) byStroke[k] = [];
+      byStroke[k].push(p);
+    });
+    var best = null, bestLen = -1;
+    for (var k in byStroke) {
+      var arr = byStroke[k];
+      var len = pathLength(arr);
+      if (len > bestLen) { bestLen = len; best = arr; }
+    }
+    if (!best || best.length < 2) return 1;
+    var a = best[0], b = best[best.length - 1];
+    return Math.min(1.4, Math.hypot(a.x - b.x, a.y - b.y));
+  }
+
+  // 線どうしの交差の数(8は交差する、0はしない、4は2本が交差する など)
+  function segIntersect(p1, p2, p3, p4) {
+    function ccw(a, b, c) { return (c.y - a.y) * (b.x - a.x) - (b.y - a.y) * (c.x - a.x); }
+    var d1 = ccw(p3, p4, p1), d2 = ccw(p3, p4, p2), d3 = ccw(p1, p2, p3), d4 = ccw(p1, p2, p4);
+    return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
+  }
+
+  function crossingsOf(pts) {
+    var segs = [];
+    for (var i = 1; i < pts.length; i++) {
+      if (pts[i].s === pts[i - 1].s) segs.push({ a: pts[i - 1], b: pts[i], s: pts[i].s, idx: i });
+    }
+    var count = 0;
+    for (var p = 0; p < segs.length; p++) {
+      for (var q = p + 1; q < segs.length; q++) {
+        if (segs[p].s === segs[q].s && segs[q].idx - segs[p].idx < 4) continue; // となりあう線分はのぞく
+        if (segIntersect(segs[p].a, segs[p].b, segs[q].a, segs[q].b)) {
+          count++;
+          if (count >= 3) return 3;
+        }
+      }
+    }
+    return count;
+  }
+
+  // 手ぶれをなめらかに(移動平均)
+  function smoothStroke(s) {
+    if (s.length < 5) return s;
+    var out = [s[0]];
+    for (var i = 1; i < s.length - 1; i++) {
+      out.push({
+        x: (s[i - 1].x + s[i].x * 2 + s[i + 1].x) / 4,
+        y: (s[i - 1].y + s[i].y * 2 + s[i + 1].y) / 4
+      });
+    }
+    out.push(s[s.length - 1]);
     return out;
   }
 
@@ -118,8 +178,7 @@
   }
 
   function greedyMatch(a, b) {
-    var e = 0.5;
-    var step = Math.floor(Math.pow(a.length, 1 - e));
+    var step = 4; // 開始点を多めにためす(精度優先。64点なら16か所×両方向)
     var min = 1e9;
     for (var i = 0; i < a.length; i += step) {
       min = Math.min(min, cloudDistance(a, b, i));
@@ -166,24 +225,34 @@
     { d: 0, s: [ellipse(0.5, 0.5, 0.36, 0.44, 0.35, 2 * Math.PI + 0.15, 22)] },
     { d: 1, s: [[{ x: 0.42, y: 0.12 }, { x: 0.55, y: 0.04 }, { x: 0.55, y: 0.95 }], [{ x: 0.3, y: 0.95 }, { x: 0.8, y: 0.95 }]] },
     { d: 6, s: [[{ x: 0.72, y: 0.06 }, { x: 0.42, y: 0.3 }, { x: 0.24, y: 0.62 }].concat(ellipse(0.5, 0.74, 0.26, 0.22, -0.5, 2 * Math.PI - 0.5, 16))] },
-    { d: 2, s: [ellipse(0.48, 0.24, 0.3, 0.19, -1.7, 1.6, 10).concat([{ x: 0.52, y: 0.6 }, { x: 0.18, y: 0.92 }, { x: 0.5, y: 0.8 }, { x: 0.88, y: 0.86 }])] }
+    { d: 2, s: [ellipse(0.48, 0.24, 0.3, 0.19, -1.7, 1.6, 10).concat([{ x: 0.52, y: 0.6 }, { x: 0.18, y: 0.92 }, { x: 0.5, y: 0.8 }, { x: 0.88, y: 0.86 }])] },
+    { d: 1, s: [[{ x: 0.5, y: 0.06 }, { x: 0.5, y: 0.94 }], [{ x: 0.28, y: 0.94 }, { x: 0.74, y: 0.94 }]] },
+    { d: 9, s: [ellipse(0.45, 0.27, 0.24, 0.23, 0, 2 * Math.PI, 16).concat([{ x: 0.69, y: 0.32 }, { x: 0.69, y: 0.95 }])] },
+    { d: 3, s: [[{ x: 0.22, y: 0.1 }, { x: 0.5, y: 0.04 }, { x: 0.76, y: 0.14 }, { x: 0.72, y: 0.32 }, { x: 0.5, y: 0.45 }, { x: 0.74, y: 0.56 }, { x: 0.8, y: 0.78 }, { x: 0.54, y: 0.96 }, { x: 0.24, y: 0.9 }, { x: 0.16, y: 0.76 }]] }
   ];
 
   var TEMPLATES = RAW_TEMPLATES.map(function (t) {
     var pts = normalize(resampleStrokes(t.s, N_POINTS));
-    return { d: t.d, pts: pts, ar: pts.ar, nStrokes: t.s.length };
+    return { d: t.d, pts: pts, ar: pts.ar, nStrokes: t.s.length, close: closureOf(pts), cross: crossingsOf(pts) };
   });
 
-  // 1つの数字(ストローク群)を、近い順のランキングで返す
-  function rankGroup(strokes) {
+  // 1つの数字(ストローク群)を、近い順のランキングで返す(excludeIdx はテスト用)
+  function rankGroup(strokes, excludeIdx) {
     var pts = normalize(resampleStrokes(strokes, N_POINTS));
+    var close = closureOf(pts);
+    var cross = crossingsOf(pts);
     var list = [];
     for (var i = 0; i < TEMPLATES.length; i++) {
+      if (i === excludeIdx) continue;
       var t = TEMPLATES[i];
       var d = greedyMatch(pts, t.pts);
       // たてよこ比のちがいをペナルティに(「1」と「0」の区別などに効く)
       var arPen = Math.abs(Math.log((pts.ar + 0.05) / (t.ar + 0.05)));
-      list.push({ d: t.d, score: d * (1 + 0.32 * Math.min(arPen, 1.2)) });
+      var score = d * (1 + 0.32 * Math.min(arPen, 1.2));
+      // 形の特徴: 閉じぐあい・交差数のちがいをペナルティに
+      score *= 1 + 0.42 * Math.min(Math.abs(close - t.close), 1);
+      score *= 1 + 0.16 * Math.min(Math.abs(cross - t.cross), 2);
+      list.push({ d: t.d, score: score });
     }
     list.sort(function (a, b) { return a.score - b.score; });
     var seen = {}, out = [];
@@ -228,14 +297,26 @@
   // じゅうぶん近ければ優先して採用する(実機の認識ミスをへらす)
   function recognize(strokes, canvasWidth, expected) {
     if (!strokes.length) return '';
-    var groups = segment(strokes, canvasWidth);
+    // なめらかにして、ちいさなゴミ点をのぞく
+    var cleaned = strokes.map(smoothStroke);
+    var minKeep = canvasWidth * 0.03;
+    var big = cleaned.filter(function (s) {
+      var minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+      s.forEach(function (p) {
+        minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
+        minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
+      });
+      return Math.max(maxX - minX, maxY - minY) >= minKeep;
+    });
+    if (big.length) cleaned = big;
+    var groups = segment(cleaned, canvasWidth);
     var digits = groups.map(function (g, gi) {
       var ranked = rankGroup(g.strokes);
       var best = ranked[0];
       if (expected && expected.length === groups.length) {
         var want = expected.charAt(gi);
         for (var i = 0; i < ranked.length; i++) {
-          if (String(ranked[i].d) === want && ranked[i].score <= best.score * 1.28) return want;
+          if (String(ranked[i].d) === want && ranked[i].score <= best.score * 1.32) return want;
         }
       }
       return String(best.d);
@@ -476,7 +557,7 @@
 
   window.HandWrite = {
     clearPads: function () { pads.forEach(function (p) { if (p) p.clearAll(); }); },
-    _test: { recognize: recognize, classifyGroup: classifyGroup, segment: segment, TEMPLATES: TEMPLATES, RAW_TEMPLATES: RAW_TEMPLATES, resampleStrokes: resampleStrokes, normalize: normalize, greedyMatch: greedyMatch, N_POINTS: N_POINTS }
+    _test: { recognize: recognize, classifyGroup: classifyGroup, rankGroup: rankGroup, segment: segment, TEMPLATES: TEMPLATES, RAW_TEMPLATES: RAW_TEMPLATES, resampleStrokes: resampleStrokes, normalize: normalize, greedyMatch: greedyMatch, N_POINTS: N_POINTS, closureOf: closureOf, crossingsOf: crossingsOf }
   };
 
   if (typeof document !== 'undefined' && document.getElementById) {

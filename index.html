@@ -7,17 +7,29 @@
 <title>けいさんマスター</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=10">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 
 <canvas id="fx-canvas"></canvas>
 
+<!-- 背景の装飾(ゆっくり漂う演算記号) -->
+<div class="bg-decor" aria-hidden="true">
+  <span class="bd bd1">＋</span>
+  <span class="bd bd2">×</span>
+  <span class="bd bd3">÷</span>
+  <span class="bd bd4">−</span>
+  <span class="bd bd5">★</span>
+  <span class="bd bd6">＋</span>
+</div>
+
 <!-- ============ ホーム画面 ============ -->
 <section id="screen-home" class="screen active">
   <div class="logo">
-    <div class="logo-mascot" id="home-mascot">🦊</div>
+    <div class="level-ring" id="home-ring">
+      <div class="logo-mascot" id="home-mascot">🦊</div>
+    </div>
     <h1 class="title"><span class="t1">けいさん</span><span class="t2">マスター</span></h1>
     <div class="logo-sub">たのしく といて、どんどん つよくなろう!</div>
   </div>
@@ -36,10 +48,10 @@
     <div class="daily-done hidden" id="daily-done">🎉 きょうの もくひょう たっせい!</div>
   </div>
   <div class="op-buttons">
-    <button class="btn op-add" data-op-btn="add"><span class="op-glyph">＋</span><span class="op-label">たし算</span></button>
-    <button class="btn op-sub" data-op-btn="sub"><span class="op-glyph">−</span><span class="op-label">ひき算</span></button>
-    <button class="btn op-mul" data-op-btn="mul"><span class="op-glyph">×</span><span class="op-label">かけ算</span></button>
-    <button class="btn op-div" data-op-btn="div"><span class="op-glyph">÷</span><span class="op-label">わり算</span></button>
+    <button class="btn op-add" data-op-btn="add"><span class="op-glyph">＋</span><span class="op-label">たし算</span><span class="op-sub">クイズ・ひっ算</span></button>
+    <button class="btn op-sub" data-op-btn="sub"><span class="op-glyph">−</span><span class="op-label">ひき算</span><span class="op-sub">クイズ・ひっ算</span></button>
+    <button class="btn op-mul" data-op-btn="mul"><span class="op-glyph">×</span><span class="op-label">かけ算</span><span class="op-sub">九九から ひっ算まで</span></button>
+    <button class="btn op-div" data-op-btn="div"><span class="op-glyph">÷</span><span class="op-label">わり算</span><span class="op-sub">あまり・ひっ算も</span></button>
   </div>
   <div class="home-nav">
     <button class="btn btn-sub" id="btn-stats">📊 きろく</button>
@@ -300,14 +312,14 @@
 </div>
 
 <!-- ?v= はキャッシュ対策。アプリを更新したら数字を増やすと、ブラウザが必ず新しい版を読み込みます -->
-<script src="data.js?v=10"></script>
-<script src="patterns.js?v=10"></script>
-<script src="badges.js?v=10"></script>
-<script src="badges2.js?v=10"></script>
-<script src="effects.js?v=10"></script>
-<script src="app.js?v=10"></script>
-<script src="hissan.js?v=10"></script>
-<script src="hissan2.js?v=10"></script>
-<script src="handwrite.js?v=10"></script>
+<script src="data.js?v=12"></script>
+<script src="patterns.js?v=12"></script>
+<script src="badges.js?v=12"></script>
+<script src="badges2.js?v=12"></script>
+<script src="effects.js?v=12"></script>
+<script src="app.js?v=12"></script>
+<script src="hissan.js?v=12"></script>
+<script src="hissan2.js?v=12"></script>
+<script src="handwrite.js?v=12"></script>
 </body>
 </html>

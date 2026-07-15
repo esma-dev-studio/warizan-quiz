@@ -77,6 +77,8 @@
     $('home-rank').textContent = rankTitle(state.level);
     var need = xpToNext(state.level);
     $('home-xp-fill').style.width = Math.min(100, state.xp / need * 100) + '%';
+    var ring = $('home-ring'); // マスコットのまわりの金のXPリング
+    if (ring) ring.style.setProperty('--p', Math.min(100, state.xp / need * 100) + '%');
     $('home-xp-text').textContent = state.xp + ' / ' + need + ' XP';
     $('home-streak').textContent = state.streakDays > 0
       ? '🔥 ' + state.streakDays + 'にち れんぞくで がんばってるよ!'
