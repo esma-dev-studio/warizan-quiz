@@ -1601,6 +1601,79 @@ body.hw-on #hissan-numpad {
   cursor: crosshair;
 }
 
+/* ひっ算ステージに直接書くための透明キャンバス */
+.hissan-stage-play {
+  position: relative;
+}
+
+.stage-canvas {
+  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  -webkit-user-select: none;
+  cursor: crosshair;
+  border-radius: inherit;
+}
+
+body.hw-on .stage-canvas {
+  display: block;
+}
+
+body.hw-on .stage-canvas.wp-off {
+  display: none;
+}
+
+/* 書くモードでは、こたえを書くスペースをステージ下部に確保 */
+body.hw-on #screen-hissan-play .hissan-stage-play {
+  padding-bottom: 150px;
+}
+
+/* 書くモードでは 黄色い入力ボックスは出さない(よみとり表示が代わり) */
+body.hw-on #screen-hissan-play .hissan-answer {
+  display: none;
+}
+
+/* ふきだしは 書くモードでは ようがあるときだけ(テンキーモードでは常に表示) */
+body.hw-on .hissan-coach.quiet {
+  display: none;
+}
+
+/* よみとり表示 */
+.recog-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 8px 16px;
+  box-shadow: var(--shadow-card);
+}
+
+.recog-strip.shake {
+  animation: shake 0.4s ease;
+}
+
+.recog-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.recog-val {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--brand);
+  min-width: 56px;
+  text-align: center;
+  font-feature-settings: 'tnum';
+}
+
 .writepad-row {
   display: flex;
   gap: 10px;

@@ -400,6 +400,9 @@
     el.className = 'hissan-step-badge ' + BADGE_CLS[play2.level.op];
     $('play-text').textContent = '✏️ じぶんで けいさんして、こたえを かこう!';
     $('play-face').textContent = '🦊';
+    // 書くモードでは説明ふきだしを出さない(まちがえたときだけ出す)
+    var coach = $('hissan-play-coach');
+    if (coach) coach.classList.toggle('quiet', document.body.classList.contains('hw-on'));
     clearTargets2();
     for (var i = 0; i < play2.m.answerText.length; i++) {
       var c = play2.map['ans-' + i];
@@ -427,6 +430,8 @@
     var st = play2.m.steps[play2.idx];
     setBadge(st, play2.level.op);
     if (window.HandWrite) window.HandWrite.clearPads();
+    var coach = $('hissan-play-coach'); // 1つずつモードではガイドを見せる
+    if (coach) coach.classList.remove('quiet');
     clearTargets2();
     // 1つずつモード: 式は聞かず、書く場所を光らせる(まちがえたらヒント)
     $('play-text').textContent = st.info ? st.q : '✏️ ひかっている □に はいる 数を かこう!';
@@ -469,6 +474,12 @@
     el.classList.remove('shake');
     void el.offsetWidth;
     el.classList.add('shake');
+    var rs = $('hissan-recog'); // 書くモードでは よみとり表示をゆらす
+    if (rs) {
+      rs.classList.remove('shake');
+      void rs.offsetWidth;
+      rs.classList.add('shake');
+    }
   }
 
   function submit2() {
@@ -506,6 +517,8 @@
     }
     play2.miss++;
     Effects.sound('wrong');
+    var coach = $('hissan-play-coach'); // まちがえたときはメッセージを見せる
+    if (coach) coach.classList.remove('quiet');
     shake2();
     play2.input = '';
     renderAnswer2();

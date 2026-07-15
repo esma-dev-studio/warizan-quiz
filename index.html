@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
 
@@ -242,8 +242,8 @@
     <button class="btn-quit" id="hissan-quit">✖</button>
     <div class="hissan-step-badge" id="hissan-step-badge">① たてる</div>
   </header>
-  <div class="hissan-stage"><div class="hissan-grid" id="play-grid"></div></div>
-  <div class="hissan-coach">
+  <div class="hissan-stage hissan-stage-play"><div class="hissan-grid" id="play-grid"></div><canvas class="stage-canvas" id="hissan-canvas"></canvas></div>
+  <div class="hissan-coach" id="hissan-play-coach">
     <span class="hissan-coach-face" id="play-face">🦊</span>
     <span class="hissan-coach-text" id="play-text"></span>
   </div>
@@ -263,7 +263,10 @@
     <button class="num-btn num-enter" data-action="enter">OK!</button>
   </div>
   <div class="writepad" id="hissan-writepad">
-    <canvas class="write-canvas" id="hissan-canvas"></canvas>
+    <div class="recog-strip" id="hissan-recog">
+      <span class="recog-label">✍️ よみとった すうじ</span>
+      <span class="recog-val" id="hissan-recog-val">—</span>
+    </div>
     <div class="writepad-row">
       <button class="btn btn-sub wp-clear">けす</button>
       <button class="btn wp-ok">OK!</button>
@@ -297,14 +300,14 @@
 </div>
 
 <!-- ?v= はキャッシュ対策。アプリを更新したら数字を増やすと、ブラウザが必ず新しい版を読み込みます -->
-<script src="data.js?v=9"></script>
-<script src="patterns.js?v=9"></script>
-<script src="badges.js?v=9"></script>
-<script src="badges2.js?v=9"></script>
-<script src="effects.js?v=9"></script>
-<script src="app.js?v=9"></script>
-<script src="hissan.js?v=9"></script>
-<script src="hissan2.js?v=9"></script>
-<script src="handwrite.js?v=9"></script>
+<script src="data.js?v=10"></script>
+<script src="patterns.js?v=10"></script>
+<script src="badges.js?v=10"></script>
+<script src="badges2.js?v=10"></script>
+<script src="effects.js?v=10"></script>
+<script src="app.js?v=10"></script>
+<script src="hissan.js?v=10"></script>
+<script src="hissan2.js?v=10"></script>
+<script src="handwrite.js?v=10"></script>
 </body>
 </html>

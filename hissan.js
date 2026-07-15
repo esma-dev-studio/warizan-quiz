@@ -326,6 +326,9 @@
       ? '✍️ せいかい! つぎは あまりを かこう!'
       : '✏️ じぶんで けいさんして、こたえを かこう!';
     $('play-face').textContent = '🦊';
+    // 書くモードでは説明ふきだしを出さない(あまりフェーズの案内だけ出す)
+    var coach = $('hissan-play-coach');
+    if (coach) coach.classList.toggle('quiet', document.body.classList.contains('hw-on') && play.phase !== 'r');
     clearTargets();
     if (play.phase === 'q') {
       play.m.rounds.forEach(function (rd) {
@@ -346,6 +349,8 @@
   function missDirect() {
     play.miss++;
     Effects.sound('wrong');
+    var coach = $('hissan-play-coach'); // まちがえたときはメッセージを見せる
+    if (coach) coach.classList.remove('quiet');
     shake();
     play.input = '';
     renderAnswer();
@@ -392,6 +397,8 @@
     var st = play.steps[play.idx];
     curDivisor = play.m.divisor;
     if (window.HandWrite) window.HandWrite.clearPads();
+    var coach = $('hissan-play-coach'); // 1つずつモードではガイドを見せる
+    if (coach) coach.classList.remove('quiet');
     $('hissan-step-badge').textContent = STEP_LABEL[st.type];
     $('hissan-step-badge').className = 'hissan-step-badge step-' + st.type;
     clearTargets();
@@ -498,6 +505,12 @@
     el.classList.remove('shake');
     void el.offsetWidth;
     el.classList.add('shake');
+    var rs = $('hissan-recog'); // 書くモードでは よみとり表示をゆらす
+    if (rs) {
+      rs.classList.remove('shake');
+      void rs.offsetWidth;
+      rs.classList.add('shake');
+    }
   }
 
   function finishPlay() {

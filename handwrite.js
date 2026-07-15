@@ -263,14 +263,23 @@
     var dpr = window.devicePixelRatio || 1;
 
     function fitCanvas() {
-      var w = wrap.clientWidth - 4;
-      var h = 170;
-      if (w < 50) return;
-      if (canvas.width !== Math.round(w * dpr)) {
+      var w, h;
+      if (cfg.overlay) { // ひっ算ステージに重ねる透明キャンバス(CSSでサイズが決まる)
+        var rect = canvas.getBoundingClientRect();
+        w = rect.width;
+        h = rect.height;
+      } else {
+        w = wrap.clientWidth - 4;
+        h = 170;
+      }
+      if (w < 50 || h < 50) return;
+      if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
         canvas.width = Math.round(w * dpr);
         canvas.height = Math.round(h * dpr);
-        canvas.style.width = w + 'px';
-        canvas.style.height = h + 'px';
+        if (!cfg.overlay) {
+          canvas.style.width = w + 'px';
+          canvas.style.height = h + 'px';
+        }
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         redraw();
       }
@@ -278,16 +287,18 @@
 
     function redraw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // うすい中央ガイド線
-      ctx.save();
-      ctx.strokeStyle = 'rgba(62, 142, 222, 0.14)';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([6, 6]);
-      ctx.beginPath();
-      ctx.moveTo(8, 145);
-      ctx.lineTo(canvas.width / dpr - 8, 145);
-      ctx.stroke();
-      ctx.restore();
+      if (!cfg.overlay) {
+        // うすい中央ガイド線(単体パッドのみ。ステージには方眼があるので不要)
+        ctx.save();
+        ctx.strokeStyle = 'rgba(62, 142, 222, 0.14)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([6, 6]);
+        ctx.beginPath();
+        ctx.moveTo(8, 145);
+        ctx.lineTo(canvas.width / dpr - 8, 145);
+        ctx.stroke();
+        ctx.restore();
+      }
       ctx.lineWidth = 7;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
@@ -312,9 +323,16 @@
       return { x: e.clientX - r.left, y: e.clientY - r.top };
     }
 
+    function showRecog(text) {
+      if (!cfg.recogValId) return;
+      var rv = document.getElementById(cfg.recogValId);
+      if (rv) rv.textContent = text || '—';
+    }
+
     function runRecognize() {
       var expected = cfg.getExpected ? cfg.getExpected() : '';
       var text = recognize(strokes, canvas.width / dpr, expected);
+      showRecog(text);
       if (text) cfg.setInput(text);
     }
 
@@ -369,6 +387,7 @@
       strokes = [];
       cur = null;
       if (timer) clearTimeout(timer);
+      showRecog('');
       redraw();
     }
 
@@ -392,6 +411,7 @@
       var logicallyHidden = numpad.classList.contains('hidden');
       wrap.classList.toggle('wp-off', logicallyHidden);
       toggle.classList.toggle('wp-off', logicallyHidden);
+      canvas.classList.toggle('wp-off', logicallyHidden);
       fitCanvas();
     }
 
@@ -428,6 +448,7 @@
     }));
     pads.push(makePad({
       wrapId: 'hissan-writepad', canvasId: 'hissan-canvas', numpadId: 'hissan-numpad', toggleId: 'hissan-input-toggle',
+      overlay: true, recogValId: 'hissan-recog-val',
       setInput: function (str) {
         if (window.__hissanOwner === 'div') { if (window.HissanDivInput) window.HissanDivInput.set(str); }
         else if (window.Hissan2) window.Hissan2.setInput(str);
